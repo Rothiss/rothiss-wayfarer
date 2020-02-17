@@ -1,7 +1,7 @@
 :root {
     --happy-headers-color: #ecdcb5;
     --darkened-background: #cccccc;
-    --dark-background: #0f0f0f;
+    --dark-background: rgba(15, 15, 15, 0.8);
     --sidebar-background: #252525;
 }
 
