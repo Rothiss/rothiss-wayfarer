@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.11
+// @version         0.1.12
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -13,6 +13,7 @@
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
+// @require         rothissWayfarerCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer.css
 // ==/UserScript==
 
 /*
@@ -284,7 +285,11 @@ function addGlobalCss()
     `
     // </editor-fold>
 
-    GM_addStyle(css.replace(/\/\/.+/g, ''))
+    // GM_addStyle(css.replace(/\/\/.+/g, ''))
+
+    let newCSS = GM_getResourceText('rothissWayfarerCSS')
+
+    GM_addStyle(newCSS)
 
     // noop after first run
     addGlobalCss = () =>
@@ -302,30 +307,36 @@ function addDarkModeCss()
             --dark-background: #0f0f0f;
             --sidebar-background: #252525;
         }
+
         // Font friendly to other countries (not just US :-/)
         .text-input.text-input, body, h3, html {
             font-family: Roboto,sans-serif;
         }
+
         // top header
         .header {
             background: var(--sidebar-background);
         }
+
         .niantic-wayfarer-logo > img {
             filter: invert() hue-rotate(180deg) brightness(1.2) saturate(80%);
         }
-        ////
+
         // main loader
         .niantic-loader {
             background: var(--dark-background);
         }
+
         .niantic-loader__logo {
             filter: invert(0);
         }
+
         .niantic-loader__shadow {
             filter: blur(4px);
             background: #ccc;
             animation: shadow-on-dark 2.2s ease-in-out infinite;
         }
+
         @keyframes shadow-on-dark {
             from,
             to {
@@ -337,8 +348,7 @@ function addDarkModeCss()
                 filter: blur(4px)
             }
         }
-    
-        ////
+
         // Login screen
         .login-button {
             width: auto;
@@ -378,26 +388,26 @@ function addDarkModeCss()
 			color: black;
 		}
 
-		////
 		// profile
-		// nick
 		#chart-contain > h1 {
 			color: var(--happy-headers-color);
 		}
+
 		#profile-stats {
 			color: whitesmoke;
 		}
 
-		////
 		// review cards
 		.card {
 			background: var(--darkened-background);
 			color: black;
 		}
+
 		.supporting-statement-central-field,
 		.supporting-central-field {
 			background: var(--darkened-background);
 		}
+
 		// review location change
 		.known-information-card {
 			overflow-y: auto;
@@ -406,53 +416,62 @@ function addDarkModeCss()
 			filter: invert();
 		}
 
-		////
 		// nominations list
 		#nom-table-title--arrow::before {
 			filter: invert() contrast(4);
 		}
+
 		#nom-options-button {
 			filter: invert();
 		}
+
 		.nomination.--selected {
 			background: #ddd;
 		}
 
-		////
 		// settings
 		.item-edit {
 			filter: invert();
 		}
+
 		#SettingsController .settings-content .settings-item .item-header {
 			color: var(--happy-headers-color);
 		}
+
 		#SettingsController .settings-content .settings-item .item-text {
 			color: #ddd;
 		}
+
 		#SettingsController .settings-content .settings-item .item-value {
 			color: #A37CD9;
 		}
+
 		// bar for on/off switch
 		.switch-label::before {
 			//background-color: rgba(0,0,0,.17);
 			background-color: rgba(255,255,255,.5);
 		}
+
 		// edit forms
 		.breadcrumb {
 			background-color: inherit;
 		}
+
 		.dropdown #simple-dropdown {
 			background: whitesmoke;
 			color: black;
 		}
+
 		.text-input.text-input {
 			background: whitesmoke;
 			color: black;
 		}
+
 		// material checkbox
 		.consent-confirm {
 			filter: invert() contrast(90%);
 		}
+
 		.consent-confirm label {
 			filter: invert();
 		}
@@ -797,7 +816,7 @@ function init()
 
     function initScript()
     {
-        addGlobalCss()
+        // addGlobalCss()
 
         if (preferences.get(ROT_WFR.OPTIONS.DARK_MODE)) {
             addDarkModeCss()
