@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.5
+// @version         0.1.6
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -42,7 +42,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100003,
+    VERSION: 100004,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -1755,16 +1755,26 @@ function init()
         }
     }
 
-    // replace map markers with a nice circle
+    /**
+     * Replace map markers with a nice circle
+     *
+     * @param markers
+     */
     function mapMarker(markers)
     {
         for (let i = 0; i < markers.length; ++i) {
             const marker = markers[i]
+
             marker.setIcon(POI_MARKER)
         }
     }
 
-    // set available map types
+    /**
+     * Set available map types
+     *
+     * @param map
+     * @param isMainMap
+     */
     function mapTypes(map, isMainMap)
     {
         const PROVIDERS = {
@@ -1776,10 +1786,12 @@ function init()
             { provider: PROVIDERS.GOOGLE, id: 'roadmap' },
             { provider: PROVIDERS.GOOGLE, id: 'terrain' },
             { provider: PROVIDERS.GOOGLE, id: 'satellite' },
-            { provider: PROVIDERS.GOOGLE, id: 'hybrid' }]
+            { provider: PROVIDERS.GOOGLE, id: 'hybrid' },
+        ]
 
         if (preferences.get(ROT_WFR.OPTIONS.NORWAY_MAP_LAYER)) {
-            types.push({ provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_topo`, code: 'topo4', label: 'NO - Topo' },
+            types.push(
+                { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_topo`, code: 'topo4', label: 'NO - Topo' },
                 { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_raster`, code: 'toporaster3', label: 'NO - Raster' },
                 { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_sjo`, code: 'sjokartraster', label: 'NO - Sjøkart' },
             )
@@ -1787,7 +1799,7 @@ function init()
 
         const defaultMapType = 'hybrid'
 
-        const mapOptions = {
+        map.setOptions({
             // re-enabling map scroll zoom and allow zoom with out holding ctrl
             scrollwheel: true,
             gestureHandling: 'greedy',
@@ -1797,8 +1809,7 @@ function init()
                 mapTypeIds: types.map(t => t.id),
                 style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
             },
-        }
-        map.setOptions(mapOptions)
+        })
 
         // register custom map types
         types.forEach(t =>
@@ -1822,6 +1833,7 @@ function init()
 
         // track current selection for position map
         let mapType
+
         if (isMainMap) {
             mapType = ROT_WFR.PREFIX + ROT_WFR.VAR.MAP_TYPE_1
         } else {
@@ -1838,11 +1850,14 @@ function init()
         map.setMapTypeId(w.localStorage.getItem(mapType) || defaultMapType)
     }
 
-    // expand automatically the "What is it?" filter text box
+    /**
+     * Expand automatically the "What is it?" filter text box
+     */
     function expandWhatIsItBox()
     {
         try {
             const whatController = w.$scope(w.document.getElementById('WhatIsItController')).whatCtrl
+
             setTimeout(() =>
             {
                 whatController.showWhat = true
