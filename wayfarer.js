@@ -55,7 +55,7 @@ const ROT_WFR = {
         MAP_CIRCLE_40: 'map_circle_40',
 
         REFRESH: 'refresh',
-        REFRESH_DESKTOP_NOTIFICATION: 'REFRESH_DESKTOP_NOTIFICATION',
+        REFRESH_DESKTOP_NOTIFICATION: 'refresh_desktop_notifications',
     },
 
     PREFIX: 'rot_wfr_',
