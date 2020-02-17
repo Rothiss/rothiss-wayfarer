@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.12
+// @version         0.1.13
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -8,6 +8,7 @@
 // @grant           unsafeWindow
 // @grant           GM_notification
 // @grant           GM_addStyle
+// @grant           GM_getResourceText
 // @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
 // @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
@@ -42,7 +43,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100007,
+    VERSION: 100008,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -2325,7 +2326,7 @@ const strings = {
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
-    changelog: `Is it dark?`,
+    changelog: `External CSS (ish)`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
