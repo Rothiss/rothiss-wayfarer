@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.10
+// @version         0.1.11
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
-// @match           https://wayfarer.nianticlabs.com/review
-// @match           https://wayfarer.nianticlabs.com/profile
+// @match           https://wayfarer.nianticlabs.com/*
 // @grant           unsafeWindow
 // @grant           GM_notification
 // @grant           GM_addStyle
@@ -234,10 +233,6 @@ function addGlobalCss()
         #submitAndSkipLowQuality, #submitAndSkipDuplicate {
             margin-left: 32px;
             margin-right: 32px;
-        }
-        
-        #profile-stats > div {
-            width: 60%;
         }
         
         #scannerOffsetContainer {
