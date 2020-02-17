@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.2
+// @version         0.1.3
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -41,8 +41,8 @@ SOFTWARE.
 
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
-const WFRT = {
-    VERSION: 100000,
+const ROT_WFR = {
+    VERSION: 100001,
     PREFERENCES: 'wfr_prefs',
 
     OPTIONS: {
@@ -74,7 +74,7 @@ const WFRT = {
     FROM_REFRESH: 'from_refresh', // sessionStorage
 }
 
-function addGlobalStyle()
+function addGlobalCss()
 {
     // <editor-fold defaultstate="collapsed" desc="CSS Lines">
     let css = `
@@ -281,7 +281,7 @@ function addGlobalStyle()
             max-width: unset !important;
         }
         
-        .rot_wfr_sidepanel_container {
+        #rot_wfr_sidepanel_container {
             background: black;
             border-left: 2px gold inset;
             border-top: 2px gold inset;
@@ -300,7 +300,7 @@ function addGlobalStyle()
     GM_addStyle(css.replace(/\/\/.+/g, ''))
 
     // noop after first run
-    addGlobalStyle = () =>
+    addGlobalCss = () =>
     {
     }
 }
@@ -308,7 +308,7 @@ function addGlobalStyle()
 function addDarkModeCss()
 {
     // <editor-fold defaultstate="collapsed" desc="CSS Lines">
-    let css = /*css*/ `
+    let css = `
         :root {
             --happy-headers-color: #ecdcb5;
             --darkened-background: #ccc;
@@ -486,20 +486,24 @@ class Preferences
     {
         this.options = {}
         this.defaults = {
-            [WFRT.OPTIONS.KEYBOARD_NAV]: true,
-            [WFRT.OPTIONS.NORWAY_MAP_LAYER]: false,
-            [WFRT.OPTIONS.PRESET_FEATURE]: true,
-            [WFRT.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
-            [WFRT.OPTIONS.SCANNER_OFFSET_UI]: false,
-            [WFRT.OPTIONS.COMMENT_TEMPLATES]: true,
-            [WFRT.OPTIONS.REFRESH]: true,
-            [WFRT.OPTIONS.REFRESH_NOTI_DESKTOP]: true,
-            [WFRT.OPTIONS.MAP_CIRCLE_20]: false,
-            [WFRT.OPTIONS.MAP_CIRCLE_40]: true,
+            [ROT_WFR.OPTIONS.KEYBOARD_NAV]: true,
+            [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: false,
+            [ROT_WFR.OPTIONS.PRESET_FEATURE]: true,
+            [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
+            [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: false,
+            [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: true,
+            [ROT_WFR.OPTIONS.REFRESH]: true,
+            [ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP]: true,
+            [ROT_WFR.OPTIONS.MAP_CIRCLE_20]: false,
+            [ROT_WFR.OPTIONS.MAP_CIRCLE_40]: false,
         }
+
         this.loadOptions()
     }
 
+    /**
+     * @param w
+     */
     showPreferencesUI(w)
     {
         let inout = new InOut(this)
@@ -539,25 +543,30 @@ class Preferences
                 // remove unknown or removed options
                 if (strings.options[item] === undefined) {
                     this.remove(item)
+
                     continue
                 }
 
-                const div = w.document.createElement('div')
-                div.classList.add('checkbox')
-                const label = w.document.createElement('label')
                 const input = w.document.createElement('input')
                 input.type = 'checkbox'
                 input.name = item
                 input.checked = this.options[item]
-                div.appendChild(label)
+
+                const label = w.document.createElement('label')
                 label.appendChild(input)
                 label.appendChild(w.document.createTextNode(strings.options[item]))
+
+                const div = w.document.createElement('div')
+                div.classList.add('checkbox')
+                div.appendChild(label)
+
                 optionsContainer.insertAdjacentElement('beforeEnd', div)
             }
 
             optionsContainer.addEventListener('change', (event) =>
             {
                 this.set(event.target.name, event.target.checked)
+
                 reloadButton.classList.remove('hide')
             })
 
@@ -572,10 +581,13 @@ class Preferences
                     (value, event) =>
                     {
                         event.preventDefault()
+
                         if (value === 'undefined' || value === '') {
                             return
                         }
+
                         inout.importFromString(value)
+
                         alertify.success(`✔ Imported preferences`)
                     }, event =>
                     {
@@ -605,36 +617,53 @@ class Preferences
 
     loadOptions()
     {
-        Object.assign(this.options, this.defaults, JSON.parse(localStorage.getItem(WFRT.PREFERENCES)))
+        Object.assign(this.options, this.defaults, JSON.parse(localStorage.getItem(ROT_WFR.PREFERENCES)))
     }
 
+    /**
+     * @param key
+     * @param value
+     */
     set(key, value)
     {
         this.options[key] = value
-        localStorage.setItem(WFRT.PREFERENCES, JSON.stringify(this.options))
+
+        localStorage.setItem(ROT_WFR.PREFERENCES, JSON.stringify(this.options))
     }
 
+    /**
+     * @param key
+     * @returns {*}
+     */
     get(key)
     {
         return this.options[key]
     }
 
+    /**
+     * @param key
+     */
     remove(key)
     {
         delete this.options[key]
-        localStorage.setItem(WFRT.PREFERENCES, JSON.stringify(this.options))
+
+        localStorage.setItem(ROT_WFR.PREFERENCES, JSON.stringify(this.options))
     }
 
-    exportPrefs()
+    exportPreferences()
     {
         return JSON.stringify(this.options)
     }
 
+    /**
+     * @param string
+     */
     importPrefs(string)
     {
         try {
             this.options = JSON.parse(string)
-            localStorage.setItem(WFRT.PREFERENCES, JSON.stringify(this.options))
+
+            localStorage.setItem(ROT_WFR.PREFERENCES, JSON.stringify(this.options))
         } catch (e) {
             throw new Error('Could not import preferences!')
         }
@@ -643,99 +672,130 @@ class Preferences
 
 class InOut
 {
+    /**
+     * @param preferences
+     */
     constructor(preferences)
     {
         this.preferences = preferences
     }
 
+    /**
+     * @returns {{}}
+     */
     static exportVars()
     {
         let exportObject = {}
-        for (const item in WFRT.VAR) {
-            exportObject[WFRT.VAR[item]] = localStorage.getItem(WFRT.PREFIX + WFRT.VAR[item])
+
+        for (const item in ROT_WFR.VAR) {
+            exportObject[ROT_WFR.VAR[item]] = localStorage.getItem(ROT_WFR.PREFIX + ROT_WFR.VAR[item])
         }
+
         return exportObject
     }
 
+    /**
+     * @param importObject
+     */
     static importVars(importObject)
     {
         for (const item in importObject) {
-            localStorage.setItem(WFRT.PREFIX + item, importObject[item])
+            localStorage.setItem(ROT_WFR.PREFIX + item, importObject[item])
         }
     }
 
+    /**
+     * @param string
+     */
     importFromString(string)
     {
         try {
             let json = JSON.parse(string)
 
-            if (json.hasOwnProperty(WFRT.PREFERENCES)) {
-                this.preferences.importPrefs(json[WFRT.PREFERENCES])
+            if (json.hasOwnProperty(ROT_WFR.PREFERENCES)) {
+                this.preferences.importPrefs(json[ROT_WFR.PREFERENCES])
             }
-            if (json.hasOwnProperty(WFRT.VAR_PREFIX)) {
-                InOut.importVars(json[WFRT.VAR_PREFIX])
+
+            if (json.hasOwnProperty(ROT_WFR.VAR_PREFIX)) {
+                InOut.importVars(json[ROT_WFR.VAR_PREFIX])
             }
         } catch (e) {
             throw new Error('Import failed')
         }
     }
 
+    /**
+     * @returns {string}
+     */
     exportAll()
     {
-        return JSON.stringify(Object.assign({}, { [WFRT.PREFERENCES]: this.preferences.exportPrefs() }, { [WFRT.VAR_PREFIX]: InOut.exportVars() }))
+        return JSON.stringify(Object.assign({}, { [ROT_WFR.PREFERENCES]: this.preferences.exportPreferences() }, { [ROT_WFR.VAR_PREFIX]: InOut.exportVars() }))
     }
 }
 
 function init()
 {
     const w = typeof unsafeWindow === 'undefined' ? window : unsafeWindow
+
     let tryNumber = 15
-
-    let rot_wfrCustomPresets
-
+    let rotWfrCustomPresets
     let browserLocale = window.navigator.languages[0] || window.navigator.language || 'en'
-
     let preferences = new Preferences()
 
     const initWatcher = setInterval(() =>
     {
         if (tryNumber === 0) {
             clearInterval(initWatcher)
+
             w.document.getElementById('NewSubmissionController').insertAdjacentHTML('afterBegin', `
-<div id="rot_wfr_init_failed" class='alert alert-danger'><strong><span class='glyphicon glyphicon-remove'></span> Wayfarer-Tools initialization failed, refresh page</strong></div>
-`)
+                <div id="rot_wfr_init_failed" class='alert alert-danger'>
+                    <strong>
+                        <span class='glyphicon glyphicon-remove'></span> 
+                        Rothiss Wayfarer initialization failed, reload page
+                    </strong>
+                </div>
+            `)
+
             addRefreshContainer()
+
             return
         }
+
         if (w.angular) {
             let err = false
+
             try {
                 initAngular()
             } catch (error) {
                 err = error
-                // console.log(error);
             }
+
             if (!err) {
                 try {
                     initScript()
+
                     clearInterval(initWatcher)
                 } catch (error) {
                     console.log(error)
+
                     if (error.message === '41') {
                         addRefreshContainer()
                     }
+
                     if (error.message !== '42') {
                         clearInterval(initWatcher)
                     }
                 }
             }
         }
+
         tryNumber--
     }, 1000)
 
     function initAngular()
     {
         const el = w.document.querySelector('[ng-app="portalApp"]')
+
         w.$app = w.angular.element(el)
         w.$injector = w.$app.injector()
         w.inject = w.$injector.invoke
@@ -754,8 +814,7 @@ function init()
 
     function initScript()
     {
-        // adding CSS
-        addGlobalStyle()
+        addGlobalCss()
         addDarkModeCss()
 
         addOptionsButton()
@@ -766,9 +825,7 @@ function init()
         if (subMissionDiv !== null && w.$scope(subMissionDiv).subCtrl !== null) {
             const subController = w.$scope(subMissionDiv).subCtrl
             const newPortalData = subController.pageData
-
             const whatController = w.$scope(w.document.getElementById('WhatIsItController')).whatCtrl
-
             const answerDiv = w.document.getElementById('AnswersController')
             const ansController = w.$scope(answerDiv).answerCtrl
 
@@ -789,7 +846,7 @@ function init()
                 modifyEditPage(ansController, subController, newPortalData)
             }
 
-            checkIfAutorefresh()
+            checkIfAutoRefresh()
 
             startExpirationTimer(subController)
 
@@ -797,9 +854,14 @@ function init()
         } else if (w.location.pathname.includes('profile')) {
             modifyProfile()
         }
-
     }
 
+    /**
+     * @param ansController
+     * @param subController
+     * @param whatController
+     * @param newPortalData
+     */
     function modifyNewPage(ansController, subController, whatController, newPortalData)
     {
         let skipDialog = false
@@ -840,20 +902,30 @@ function init()
                 }
             }
         })
+
         bodyObserver.observe(w.document.body, { childList: true })
 
         let newSubmitDiv = w.document.querySelector('.answer-btn-container.bottom-btns')
         let { submitButton, submitAndNext } = quickSubmitButton(newSubmitDiv, ansController, bodyObserver)
 
-        if (preferences.get(WFRT.OPTIONS.COMMENT_TEMPLATES)) {
+        if (preferences.get(ROT_WFR.OPTIONS.COMMENT_TEMPLATES)) {
             commentTemplates()
         }
 
         /* region presets start */
-        if (preferences.get(WFRT.OPTIONS.PRESET_FEATURE)) {
-            const customPresetUI = `<div class="card" id="rot_wfr_custom_presets_card"><div class="card__body"><div>Presets&nbsp;<button class="btn btn-default btn-xs" id="addPreset">+</button></div>
-  <div class='btn-group' id="rot_wfr_custom_presets"></div></div></div>
-`
+        if (preferences.get(ROT_WFR.OPTIONS.PRESET_FEATURE)) {
+            const customPresetUI = `
+                <div class="card" id="rot_wfr_custom_presets_card">
+                    <div class="card__body">
+                        <div>
+                            Presets&nbsp;
+                            <button class="btn btn-default btn-xs" id="addPreset">
+                                +
+                            </button>
+                        </div>
+                        <div class='btn-group' id="rot_wfr_custom_presets"></div>
+                    </div>
+                </div>`
 
             w.document.querySelector('.card-row-container').insertAdjacentHTML('afterbegin', customPresetUI)
 
@@ -863,6 +935,7 @@ function init()
             w.$injector.invoke(['$compile', ($compile) =>
             {
                 let compiledSubmit = $compile(`<span class="glyphicon glyphicon-info-sign darkgray" uib-tooltip-trigger="outsideclick" uib-tooltip-placement="left" tooltip-class="goldBorder" uib-tooltip="(Wayfarer-Tools) Create your own presets for stuff like churches, playgrounds or crosses'.\nHowto: Answer every question you want included and click on the +Button.\n\nTo delete a preset shift-click it."></span>&nbsp; `)(w.$scope(document.getElementById('descriptionDiv')))
+
                 w.document.getElementById('addPreset').insertAdjacentElement('beforebegin', compiledSubmit[0])
             }])
 
@@ -873,11 +946,15 @@ function init()
                     (value, event) =>
                     {
                         event.preventDefault()
+
                         if (value === 'undefined' || value === '') {
                             return
                         }
+
                         saveCustomPreset(value, ansController, whatController)
+
                         alertify.success(`✔ Created preset <i>${value}</i>`)
+
                         addCustomPresetButtons()
                     }, event =>
                     {
@@ -889,17 +966,22 @@ function init()
             let clickListener = event =>
             {
                 const source = event.target || event.srcElement
+
                 let value = source.id
+
                 if (value === '' || event.target.nodeName !== 'BUTTON') {
                     return
                 }
 
-                let preset = rot_wfrCustomPresets.find(item => item.uid === value)
+                let preset = rotWfrCustomPresets.find(item => item.uid === value)
 
                 if (event.shiftKey) {
                     alertify.log(`Deleted preset <i>${preset.label}</i>`)
+
                     w.document.getElementById(preset.uid).remove()
+
                     deleteCustomPreset(preset)
+
                     return
                 }
 
@@ -910,22 +992,26 @@ function init()
                 ansController.formData.location = preset.location
                 ansController.formData.safety = preset.safety
 
-                // the controller's set by ID function doesn't work
-                // and autocomplete breaks if there are any spaces
+                // the controller's set by ID function doesn't work and autocomplete breaks if there are any spaces
                 // so set the field to the first word from name and match autocomplete by ID
                 // at the very least, I know this will set it and leave the UI looking like it was manually set.
                 whatController.whatInput = preset.nodeName.split(' ')[0]
+
                 let nodes = whatController.getWhatAutocomplete()
+
                 for (let i = 0; i < nodes.length; i++) {
                     if (nodes[i].id === preset.nodeId) {
                         whatController.setWhatAutocompleteNode(nodes[i])
+
                         break
                     }
                 }
+
                 whatController.whatInput = ''
 
                 // update ui
                 event.target.blur()
+
                 w.$rootScope.$apply()
 
                 alertify.success(`✔ Applied <i>${preset.label}</i>`)
@@ -937,15 +1023,20 @@ function init()
 
         // make photo filmstrip scrollable
         const filmstrip = w.document.getElementById('map-filmstrip')
+
         let lastScrollLeft = filmstrip.scrollLeft
 
         function scrollHorizontally(e)
         {
             e = window.event || e
+
             if ((('deltaY' in e && e.deltaY !== 0) || ('wheelDeltaY' in e && e.wheelDeltaY !== 0)) && lastScrollLeft === filmstrip.scrollLeft) {
                 e.preventDefault()
+
                 const delta = (e.wheelDeltaY || -e.deltaY * 25 || -e.detail)
+
                 filmstrip.scrollLeft -= (delta)
+
                 lastScrollLeft = filmstrip.scrollLeft
             }
         }
@@ -954,6 +1045,7 @@ function init()
         filmstrip.addEventListener('DOMMouseScroll', scrollHorizontally, false)
 
         let _initMap = subController.initMap
+
         subController.initMap = () =>
         {
             _initMap()
@@ -967,6 +1059,7 @@ function init()
 
         // hook resetStreetView() and re-apply map types and options to first map. not needed for duplicates because resetMap() just resets the position
         let _resetStreetView = subController.resetStreetView
+
         subController.resetStreetView = () =>
         {
             _resetStreetView()
@@ -978,13 +1071,16 @@ function init()
         let draggableMarkerCircle
         let draggableMarkerCircleSmall
         let _showDraggableMarker = subController.showDraggableMarker
+
         subController.showDraggableMarker = () =>
         {
             _showDraggableMarker()
 
             w.getService('NewSubmissionDataService')
+
             let newLocMarker = w.NewSubmissionDataService.getNewLocationMarker()
-            if (preferences.get(WFRT.OPTIONS.MAP_CIRCLE_40)) {
+
+            if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_40)) {
                 google.maps.event.addListener(newLocMarker, 'dragend', function()
                 {
                     if (draggableMarkerCircle == null) {
@@ -1003,7 +1099,7 @@ function init()
                 })
             }
 
-            if (preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20)) {
+            if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_20)) {
                 google.maps.event.addListener(newLocMarker, 'dragend', function()
                 {
                     if (draggableMarkerCircleSmall == null) {
@@ -1023,20 +1119,13 @@ function init()
             }
         }
 
-        if (preferences.get(WFRT.OPTIONS.MAP_CIRCLE_40) || preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20)) {
-            document.querySelector('.flex-map-row').insertAdjacentHTML('beforeEnd',
-                `<small id="rot_wfr_map_legend">
-                ${preferences.get(WFRT.OPTIONS.MAP_CIRCLE_40) ? '<span style="color:#ebbc4a">outer circle:</span> 40m' : ''}
-                ${preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20) ? '<span style="color:#effc4a">inner circle:</span> 20m' : ''}
-            </small>`)
-        }
-
         // bind click-event to Dup-Images-Filmstrip. result: a click to the detail-image the large version is loaded in another tab
         const imgDups = w.document.querySelectorAll('#map-filmstrip > ul > li > img')
         const openFullImage = function()
         {
             w.open(`${this.src}=s0`, 'fulldupimage')
         }
+
         for (let imgSep in imgDups) {
             if (imgDups.hasOwnProperty(imgSep)) {
                 imgDups[imgSep].addEventListener('click', () =>
@@ -1162,7 +1251,7 @@ function init()
         }
 
         /* region keyboard nav */
-        if (preferences.get(WFRT.OPTIONS.KEYBOARD_NAV)) {
+        if (preferences.get(ROT_WFR.OPTIONS.KEYBOARD_NAV)) {
             activateShortcuts()
         }
 
@@ -1395,7 +1484,7 @@ function init()
         let newSubmitDiv = w.document.querySelector('.answer-btn-container.bottom-btns')
         let { submitButton, submitAndNext } = quickSubmitButton(newSubmitDiv, ansController, bodyObserver)
 
-        if (preferences.get(WFRT.OPTIONS.COMMENT_TEMPLATES)) {
+        if (preferences.get(ROT_WFR.OPTIONS.COMMENT_TEMPLATES)) {
             commentTemplates()
         }
 
@@ -1462,7 +1551,7 @@ function init()
         /* EDIT PORTAL */
         /* region keyboard navigation */
 
-        if (preferences.get(WFRT.OPTIONS.KEYBOARD_NAV)) {
+        if (preferences.get(ROT_WFR.OPTIONS.KEYBOARD_NAV)) {
             activateShortcuts()
         }
 
@@ -1745,7 +1834,7 @@ function init()
     function mapOriginCircle(map)
     {
         // noinspection JSUnusedLocalSymbols
-        if (preferences.get(WFRT.OPTIONS.MAP_CIRCLE_40)) {
+        if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_40)) {
             const circle40 = new google.maps.Circle({ // eslint-disable-line no-unused-vars
                 map: map,
                 center: map.center,
@@ -1757,7 +1846,7 @@ function init()
             })
         }
 
-        if (preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20)) {
+        if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_20)) {
             const circle20 = new google.maps.Circle({ // eslint-disable-line no-unused-vars
                 map: map,
                 center: map.center,
@@ -1793,7 +1882,7 @@ function init()
             { provider: PROVIDERS.GOOGLE, id: 'satellite' },
             { provider: PROVIDERS.GOOGLE, id: 'hybrid' }]
 
-        if (preferences.get(WFRT.OPTIONS.NORWAY_MAP_LAYER)) {
+        if (preferences.get(ROT_WFR.OPTIONS.NORWAY_MAP_LAYER)) {
             types.push({ provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_topo`, code: 'topo4', label: 'NO - Topo' },
                 { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_raster`, code: 'toporaster3', label: 'NO - Raster' },
                 { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_sjo`, code: 'sjokartraster', label: 'NO - Sjøkart' },
@@ -1838,9 +1927,9 @@ function init()
         // track current selection for position map
         let mapType
         if (isMainMap) {
-            mapType = WFRT.PREFIX + WFRT.VAR.MAP_TYPE_1
+            mapType = ROT_WFR.PREFIX + ROT_WFR.VAR.MAP_TYPE_1
         } else {
-            mapType = WFRT.PREFIX + WFRT.VAR.MAP_TYPE_2
+            mapType = ROT_WFR.PREFIX + ROT_WFR.VAR.MAP_TYPE_2
         }
 
         // save selection when changed
@@ -1893,9 +1982,9 @@ function init()
         // stats enhancements: add processed by nia, percent processed, progress to next recon badge numbers
 
         let rot_wfrScannerOffset = 0
-        if (preferences.get(WFRT.OPTIONS.SCANNER_OFFSET_FEATURE)) {
+        if (preferences.get(ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE)) {
             // get scanner offset from localStorage
-            rot_wfrScannerOffset = parseInt(w.localStorage.getItem(WFRT.SCANNER_OFFSET)) || 0
+            rot_wfrScannerOffset = parseInt(w.localStorage.getItem(ROT_WFR.SCANNER_OFFSET)) || 0
         }
         const stats = w.document.querySelector('#profile-stats:not(.visible-xs)')
 
@@ -1954,7 +2043,7 @@ ${Math.round(nextBadgeProcess)}%
 value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (Created: ${accepted}/ Rejected: ${rejected}/ Duplicated: ${duplicated}) / ${Math.round(processedPercent)}%"/></div>`)
 
         // ** wayfarer-scanner offset
-        if (accepted < 10000 && preferences.get(WFRT.OPTIONS.SCANNER_OFFSET_UI)) {
+        if (accepted < 10000 && preferences.get(ROT_WFR.OPTIONS.SCANNER_OFFSET_UI)) {
             stats.insertAdjacentHTML('beforeEnd', `
 <div id='scannerOffsetContainer'>
 <span style="margin-left: 5px" class="ingress-mid-blue pull-left">Scanner offset:</span>
@@ -1972,7 +2061,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             {
                 w.document.getElementById('scannerOffset').addEventListener(e, (event) =>
                 {
-                    w.localStorage.setItem(WFRT.SCANNER_OFFSET, event.target.value)
+                    w.localStorage.setItem(ROT_WFR.SCANNER_OFFSET, event.target.value)
                 })
             })
             // **
@@ -2009,13 +2098,13 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         let cbxRefresh = w.document.createElement('input')
         let cbxRefreshDesktop = w.document.createElement('input')
 
-        cbxRefresh.id = WFRT.OPTIONS.REFRESH
+        cbxRefresh.id = ROT_WFR.OPTIONS.REFRESH
         cbxRefresh.type = 'checkbox'
-        cbxRefresh.checked = preferences.get(WFRT.OPTIONS.REFRESH) === 'true'
+        cbxRefresh.checked = preferences.get(ROT_WFR.OPTIONS.REFRESH) === 'true'
 
-        cbxRefreshDesktop.id = WFRT.OPTIONS.REFRESH_NOTI_DESKTOP
+        cbxRefreshDesktop.id = ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP
         cbxRefreshDesktop.type = 'checkbox'
-        cbxRefreshDesktop.checked = preferences.get(WFRT.OPTIONS.REFRESH_NOTI_DESKTOP) === 'true'
+        cbxRefreshDesktop.checked = preferences.get(ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP) === 'true'
 
         let refreshPanel = w.document.createElement('div')
         refreshPanel.className = 'panel panel-ingress'
@@ -2079,7 +2168,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         function reloadWayfarer()
         {
             clearInterval(refreshIntervalID)
-            w.sessionStorage.setItem(WFRT.FROM_REFRESH, 'true')
+            w.sessionStorage.setItem(ROT_WFR.FROM_REFRESH, 'true')
             w.document.location.reload()
         }
 
@@ -2097,16 +2186,16 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         clearInterval(refreshIntervalID)
     }
 
-    function checkIfAutorefresh()
+    function checkIfAutoRefresh()
     {
-        if (w.sessionStorage.getItem(WFRT.FROM_REFRESH)) {
+        if (w.sessionStorage.getItem(ROT_WFR.FROM_REFRESH)) {
             // reset flag
-            w.sessionStorage.removeItem(WFRT.FROM_REFRESH)
+            w.sessionStorage.removeItem(ROT_WFR.FROM_REFRESH)
 
             if (w.document.hidden) { // if tab in background: flash favicon
                 let flag = true
 
-                if (preferences.get(WFRT.OPTIONS.REFRESH_NOTI_DESKTOP) === 'true') {
+                if (preferences.get(ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP) === 'true') {
                     GM_notification({
                         'title': 'Wayfarer - New Wayspot Analysis Available',
                         'text': 'by Wayfarer-Tools',
@@ -2144,7 +2233,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
 
         let countdownEnd = subController.pageData.expires
         let countdownDisplay = document.getElementById('countdownDisplay')
-        countdownDisplay.style.setProperty('color', 'black')
+        countdownDisplay.style.setProperty('color', 'white')
 
         // Update the count down every 1 second
         let counterInterval = setInterval(function()
@@ -2173,8 +2262,8 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
 
     function versionCheck()
     {
-        if (WFRT.VERSION > (parseInt(w.localStorage.getItem(WFRT.PREFIX + WFRT.VERSION_CHECK)) || WFRT.VERSION - 1)) {
-            w.localStorage.setItem(WFRT.PREFIX + WFRT.VERSION_CHECK, WFRT.VERSION)
+        if (ROT_WFR.VERSION > (parseInt(w.localStorage.getItem(ROT_WFR.PREFIX + ROT_WFR.VERSION_CHECK)) || ROT_WFR.VERSION - 1)) {
+            w.localStorage.setItem(ROT_WFR.PREFIX + ROT_WFR.VERSION_CHECK, ROT_WFR.VERSION)
 
             const changelogString = `<h4>
                     <span class="glyphicon glyphicon-asterisk"></span>
@@ -2194,9 +2283,9 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
     function addCustomPresetButtons()
     {
         // add customPreset UI
-        rot_wfrCustomPresets = getCustomPresets(w)
+        rotWfrCustomPresets = getCustomPresets(w)
         let customPresetOptions = ''
-        for (const customPreset of rot_wfrCustomPresets) {
+        for (const customPreset of rotWfrCustomPresets) {
             customPresetOptions += `<button class='btn btn-default customPresetButton' id='${customPreset.uid}'>${customPreset.label}</button>`
         }
         w.document.getElementById('rot_wfr_custom_presets').innerHTML = customPresetOptions
@@ -2205,7 +2294,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
     function getCustomPresets(w)
     {
         // simply to scope the string we don't need after JSON.parse
-        let presetsJSON = w.localStorage.getItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS)
+        let presetsJSON = w.localStorage.getItem(ROT_WFR.PREFIX + ROT_WFR.VAR.CUSTOM_PRESETS)
         if (presetsJSON != null && presetsJSON !== '') {
             return JSON.parse(presetsJSON)
         }
@@ -2227,14 +2316,14 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             location: ansController.formData.location,
             safety: ansController.formData.safety,
         }
-        rot_wfrCustomPresets.push(preset)
-        w.localStorage.setItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS, JSON.stringify(rot_wfrCustomPresets))
+        rotWfrCustomPresets.push(preset)
+        w.localStorage.setItem(ROT_WFR.PREFIX + ROT_WFR.VAR.CUSTOM_PRESETS, JSON.stringify(rotWfrCustomPresets))
     }
 
     function deleteCustomPreset(preset)
     {
-        rot_wfrCustomPresets = rot_wfrCustomPresets.filter(item => item.uid !== preset.uid)
-        w.localStorage.setItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS, JSON.stringify(rot_wfrCustomPresets))
+        rotWfrCustomPresets = rotWfrCustomPresets.filter(item => item.uid !== preset.uid)
+        w.localStorage.setItem(ROT_WFR.PREFIX + ROT_WFR.VAR.CUSTOM_PRESETS, JSON.stringify(rotWfrCustomPresets))
     }
 
     function showHelp()
@@ -2327,43 +2416,17 @@ setTimeout(() =>
 
 const strings = {
     options: {
-        [WFRT.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
-        [WFRT.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
-        [WFRT.OPTIONS.NORWAY_MAP_LAYER]: 'Norwegian map layer',
-        [WFRT.OPTIONS.PRESET_FEATURE]: 'Rating presets',
-        [WFRT.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
-        [WFRT.OPTIONS.REFRESH_NOTI_DESKTOP]: '↳ With desktop notification',
-        [WFRT.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
-        [WFRT.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
-        [WFRT.OPTIONS.MAP_CIRCLE_20]: 'Show 20 meter circle around candidate location (minimum portal distance)',
-        [WFRT.OPTIONS.MAP_CIRCLE_40]: 'Show 40 meter circle around candidate location (capture range)',
+        [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
+        [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
+        [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: 'Norwegian map layer',
+        [ROT_WFR.OPTIONS.PRESET_FEATURE]: 'Rating presets',
+        [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
+        [ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP]: '↳ With desktop notification',
+        [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
+        [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
-    changelog:
-        `
-Version 2.0.6
-<br>* Added shortcut key U to open supporting statement translation
-<br>* Fixed countdown timer and percentage breakdowns (thanks to @fotofreund0815)
-`,
+    changelog: ``,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
-
-// TG SVG Icon from https://commons.wikimedia.org/wiki/File:Telegram_logo.svg
-const TG_SVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" style="width: 16px; height: 16px;">
-<defs>
-  <linearGradient id="b" x1="0.6667" y1="0.1667" x2="0.4167" y2="0.75">
-    <stop stop-color="#37aee2" offset="0"></stop>
-    <stop stop-color="#1e96c8" offset="1"></stop>
-  </linearGradient>
-  <linearGradient id="w" x1="0.6597" y1="0.4369" x2="0.8512" y2="0.8024">
-    <stop stop-color="#eff7fc" offset="0"></stop>
-    <stop stop-color="#fff" offset="1"></stop>
-  </linearGradient>
-</defs>
-<circle cx="120" cy="120" r="120" fill="url(#b)"></circle>
-<path fill="#c8daea" d="m98 175c-3.8876 0-3.227-1.4679-4.5678-5.1695L82 132.2059 170 80"></path>
-<path fill="#a9c9dd" d="m98 175c3 0 4.3255-1.372 6-3l16-15.558-19.958-12.035"></path>
-<path fill="url(#w)" d="m100.04 144.41 48.36 35.729c5.5185 3.0449 9.5014 1.4684 10.876-5.1235l19.685-92.763c2.0154-8.0802-3.0801-11.745-8.3594-9.3482l-115.59 44.571c-7.8901 3.1647-7.8441 7.5666-1.4382 9.528l29.663 9.2583 68.673-43.325c3.2419-1.9659 6.2173-0.90899 3.7752 1.2584"></path>
-</svg>`
 // endregion
