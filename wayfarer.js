@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.0
+// @version         0.1.1
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -9,8 +9,8 @@
 // @grant           unsafeWindow
 // @grant           GM_notification
 // @grant           GM_addStyle
-// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/wayfarer.js
-// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/wayfarer.js
+// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
+// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
@@ -81,9 +81,216 @@ const WFRT = {
     FROM_REFRESH: 'from_refresh', // sessionStorage
 }
 
-function addGlobalStyle(css)
+function addGlobalStyle()
 {
-    GM_addStyle(css)
+    // <editor-fold defaultstate="collapsed" desc="CSS Lines">
+    let css = `
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            z-index: 1;
+            margin: 0;
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        
+        .dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover {
+            background-color: unset;
+        }
+        
+        .dropdown .dropdown-menu {
+            left: 0px;
+            right: unset;
+            width: unset;
+        }
+        
+        .modal-sm {
+            width: 350px !important;
+        }
+        
+        .panel-ingress {
+            background-color: #004746;
+            border: 1px solid #0ff;
+            border-radius: 1px;
+            box-shadow: inset 0 0 6px rgba(255, 255, 255, 1);
+            color: #0ff;
+        }
+        
+        [data-tooltip] {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        [data-tooltip]:before,
+        [data-tooltip]:after {
+            visibility: hidden;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        [data-tooltip]:before {
+            position: absolute;
+            top: 150%;
+            left: 50%;
+            margin-bottom: 5px;
+            margin-left: -80px;
+            padding: 7px;
+            width: relative;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            border-radius: 3px;
+            background-color: #000;
+            background-color: hsla(0, 0%, 20%, 0.9);
+            color: #fff;
+            content: attr(data-tooltip);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.2;
+            z-index: 100;
+        }
+        
+        [data-tooltip]:after {
+            position: absolute;
+            top: 132%;
+            left: relative;
+            width: 0;
+            border-bottom: 5px solid #000;
+            border-bottom: 5px solid hsla(0, 0%, 20%, 0.9);
+            border-right: 5px solid transparent;
+            border-left: 5px solid transparent;
+            content: " ";
+            font-size: 0;
+            line-height: 0;
+        }
+        
+        [data-tooltip]:hover:before,
+        [data-tooltip]:hover:after {
+            visibility: visible;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+            opacity: 1;
+        }
+        
+        .titleEditBox:hover {
+            box-shadow: inset 0 0 20px #ebbc4a;
+        }
+        
+        .titleEditBox:active {
+            box-shadow: inset 0 0 15px 2px white;
+        }
+        
+        .group-list li label:hover, ul.sub-group-list a:hover, #root-label:hover {
+            box-shadow: inset 0 0 5px #000000 !important;
+        }
+        
+        .group-list li label:active, ul.sub-group-list a:active, #root-label:active {
+            box-shadow: inset 0 0 10px 2px #000000 !important;
+        }
+        
+        .modal-body .button:focus, .modal-body textarea:focus {
+            outline: 2px dashed #ebbc4a;
+        }
+        
+        .modal-body .button:hover, .gm-style-iw button.button:hover {
+            filter: brightness(150%);
+        }
+        
+        .alertify-logs {
+            z-index: 100;
+        }
+        
+        .alertify .dialog .msg {
+            color: black;
+        }
+        
+        .alertify-logs > .default {
+            background-image: url(/img/ingress-background-dark.png) !important;
+        }
+        
+        .btn-xs {
+            margin-left: 8px;
+            padding: 0px 7px 1px !important;
+            box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
+            -webkit-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
+            -moz-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
+        }
+        
+        kbd {
+            display: inline-block;
+            padding: 3px 5px;
+            font: 11px SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+            line-height: 10px;
+            color: #444d56;
+            vertical-align: middle;
+            background-color: #fafbfc;
+            border: 1px solid #d1d5da;
+            border-bottom-color: #c6cbd1;
+            border-radius: 3px;
+            box-shadow: inset 0 -1px 0 #c6cbd1;
+        }
+        
+        .dropdown-menu {
+            margin: 0 !important;
+        }
+        
+        .opr-yellow {
+            color: #F3EADA;
+        }
+        
+        #submitAndSkipLowQuality, #submitAndSkipDuplicate {
+            margin-left: 32px;
+            margin-right: 32px;
+        }
+        
+        #profile-stats > div {
+            width: 60%;
+        }
+        
+        #scannerOffsetContainer {
+            margin-top: 16px;
+        }
+        
+        #wfrt_preferences_button {
+            cursor: pointer;
+            margin-right: 20px;
+            margin-left: 20px;
+            color: rgb(157,157,157);
+        }
+        
+        #wfrt_custom_presets_card {
+            width: 100%;
+            height: auto;
+            min-height: unset;
+            margin-left: 15px;
+        }
+        
+        #submitFF {
+            margin-right: 16px;
+        }
+        
+        @media (min-width: 768px) {
+            div.modal-custom1 {
+                width: 500px;
+                max-width: unset !important;
+            }
+        }
+        
+        .card-area .card-row-container {
+            max-width: unset !important;
+        }
+    `
+    // </editor-fold>
+
+    GM_addStyle(css.replace(/\/\/.+/g, ''))
 
     // noop after first run
     addGlobalStyle = () =>
@@ -93,103 +300,90 @@ function addGlobalStyle(css)
 
 function addDarkModeCss()
 {
-    // base CSS
-    var cssText = /*css*/ `
-	:root {
-		--happy-headers-color: #ecdcb5;
-		--darkened-background: #ccc;
-		--dark-background: #0f0f0f;
-		--sidebar-background: #252525;
-	}
-	// Font friendly to other countries (not just US :-/)
-	.text-input.text-input, body, h3, html {
-		font-family: Roboto,sans-serif;
-	}
-	// top header
-	.header {
-		background: var(--sidebar-background);
-	}
-	.niantic-wayfarer-logo > img {
-		filter: invert() hue-rotate(180deg) brightness(1.2) saturate(80%);
-	}
-	////
-	// main loader
-	.niantic-loader {
-		background: var(--dark-background);
-	}
-	.niantic-loader__logo {
-		filter: invert(0);
-	}
-	.niantic-loader__shadow {
-		filter: blur(4px);
-		background: #ccc;
-		animation: shadow-on-dark 2.2s ease-in-out infinite;
-	}
-	@keyframes shadow-on-dark {
-		from,
-		to {
-			opacity: .6;
-			filter: blur(6px)
-		}
-		55% {
-			opacity: .3;
-			filter: blur(4px)
-		}
-	}
-	
-	////
-	// Login screen
-	.login-button {
-		width: auto;
-		display: grid;
-		grid-template-columns: 45px 1fr;
-		align-items: center;
-		min-height: 40px;
-		height: auto;
-	}
-	  
-	.login-span-text {
-		position: static;
-		text-align: left;
-		transform: none;
-		width: 250px;
-	}
-	`
-
-    // some pages -- make just a bit darker
-    if (location.pathname.search(/^\/(help)$/) >= 0) {
-        cssText += /*css*/ `
-		// general darkness
-		body,#gallery-info {
-			background: var(--darkened-background);
-			color: black;
-		}
-		`
-        // more important pages -- make dark
-    } else {
-        cssText += /*css*/ `
+    // <editor-fold defaultstate="collapsed" desc="CSS Lines">
+    let css = /*css*/ `
+        :root {
+            --happy-headers-color: #ecdcb5;
+            --darkened-background: #ccc;
+            --dark-background: #0f0f0f;
+            --sidebar-background: #252525;
+        }
+        // Font friendly to other countries (not just US :-/)
+        .text-input.text-input, body, h3, html {
+            font-family: Roboto,sans-serif;
+        }
+        // top header
+        .header {
+            background: var(--sidebar-background);
+        }
+        .niantic-wayfarer-logo > img {
+            filter: invert() hue-rotate(180deg) brightness(1.2) saturate(80%);
+        }
+        ////
+        // main loader
+        .niantic-loader {
+            background: var(--dark-background);
+        }
+        .niantic-loader__logo {
+            filter: invert(0);
+        }
+        .niantic-loader__shadow {
+            filter: blur(4px);
+            background: #ccc;
+            animation: shadow-on-dark 2.2s ease-in-out infinite;
+        }
+        @keyframes shadow-on-dark {
+            from,
+            to {
+                opacity: .6;
+                filter: blur(6px)
+            }
+            55% {
+                opacity: .3;
+                filter: blur(4px)
+            }
+        }
+    
+        ////
+        // Login screen
+        .login-button {
+            width: auto;
+            display: grid;
+            grid-template-columns: 45px 1fr;
+            align-items: center;
+            min-height: 40px;
+            height: auto;
+        }
+    
+        .login-span-text {
+            position: static;
+            text-align: left;
+            transform: none;
+            width: 250px;
+        }
+        
 		// general darkness
 		body,#gallery-info,.known-information-need-edit,.container {
 			background: var(--dark-background);
 			color: whitesmoke;
 		}
-		
+
 		// cookies dialog
 		ark-cookiebar {
 			background: var(--darkened-background);
 			color: black;
 		}
-		
+
 		// most titles
 		h3 {
 			color: var(--happy-headers-color);
 		}
-		
+
 		// dialogs
 		.modal-dialog {
 			color: black;
 		}
-		
+
 		////
 		// profile
 		// nick
@@ -199,7 +393,7 @@ function addDarkModeCss()
 		#profile-stats {
 			color: whitesmoke;
 		}
-		
+
 		////
 		// review cards
 		.card {
@@ -217,7 +411,7 @@ function addDarkModeCss()
 		.known-information-card .known-information-map-icon::before {
 			filter: invert();
 		}
-		  
+
 		////
 		// nominations list
 		#nom-table-title--arrow::before {
@@ -229,7 +423,7 @@ function addDarkModeCss()
 		.nomination.--selected {
 			background: #ddd;
 		}
-		
+
 		////
 		// settings
 		.item-edit {
@@ -268,10 +462,10 @@ function addDarkModeCss()
 		.consent-confirm label {
 			filter: invert();
 		}
-		`
-    }
+    `
+    // </editor-fold>
 
-    GM_addStyle(cssText.replace(/\/\/.+/g, ''))
+    GM_addStyle(css.replace(/\/\/.+/g, ''))
 
     // noop after first run
     addDarkModeCss = () =>
@@ -320,7 +514,7 @@ class Preferences
     height: 90%;
     padding: 0 20px;
     z-index: 10;
-    width: 400px;    
+    width: 400px;
     ">
   <div class="row">
     <div class="col-lg-12">
@@ -336,8 +530,8 @@ class Preferences
   <div id="wfrt_options"></div>
   <a id="wfrt_reload" class="btn btn-warning hide"><span class="glyphicon glyphicon-refresh"></span>
  Reload to apply changes</a>
- 
- <div style="position: absolute; bottom: 0; left: 0; margin:20px;"><a href="https://t.me/oprtools">${TG_SVG} Wayfarer-Tools Telegram Channel</a></div> 
+
+ <div style="position: absolute; bottom: 0; left: 0; margin:20px;"><a href="https://t.me/oprtools">${TG_SVG} Wayfarer-Tools Telegram Channel</a></div>
 </section>`)
 
             let optionsContainer = w.document.getElementById('wfrt_options')
@@ -571,7 +765,7 @@ function init()
     function initScript()
     {
         // adding CSS
-        addGlobalStyle(GLOBAL_CSS)
+        addGlobalStyle()
         addDarkModeCss()
 
         addOptionsButton()
@@ -2161,211 +2355,6 @@ Version 2.0.6
 <br>* Fixed countdown timer and percentage breakdowns (thanks to @fotofreund0815)
 `,
 }
-
-const GLOBAL_CSS = `
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    z-index: 1;
-    margin: 0;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover {
-    background-color: unset;
-}
-
-.dropdown .dropdown-menu {
-    left: 0px;
-    right: unset;
-    width: unset;
-}
-
-.modal-sm {
-    width: 350px !important;
-}
-
-.panel-ingress {
-    background-color: #004746;
-    border: 1px solid #0ff;
-    border-radius: 1px;
-    box-shadow: inset 0 0 6px rgba(255, 255, 255, 1);
-    color: #0ff;
-}
-
-[data-tooltip] {
-    position: relative;
-    cursor: pointer;
-}
-
-[data-tooltip]:before,
-[data-tooltip]:after {
-    visibility: hidden;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
-    opacity: 0;
-    pointer-events: none;
-}
-
-[data-tooltip]:before {
-    position: absolute;
-    top: 150%;
-    left: 50%;
-    margin-bottom: 5px;
-    margin-left: -80px;
-    padding: 7px;
-    width: relative;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    background-color: #000;
-    background-color: hsla(0, 0%, 20%, 0.9);
-    color: #fff;
-    content: attr(data-tooltip);
-    text-align: center;
-    font-size: 14px;
-    line-height: 1.2;
-    z-index: 100;
-}
-
-[data-tooltip]:after {
-    position: absolute;
-    top: 132%;
-    left: relative;
-    width: 0;
-    border-bottom: 5px solid #000;
-    border-bottom: 5px solid hsla(0, 0%, 20%, 0.9);
-    border-right: 5px solid transparent;
-    border-left: 5px solid transparent;
-    content: " ";
-    font-size: 0;
-    line-height: 0;
-}
-
-[data-tooltip]:hover:before,
-[data-tooltip]:hover:after {
-    visibility: visible;
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
-    opacity: 1;
-}
-
-.titleEditBox:hover {
-    box-shadow: inset 0 0 20px #ebbc4a;
-}
-
-.titleEditBox:active {
-    box-shadow: inset 0 0 15px 2px white;
-}
-
-.group-list li label:hover, ul.sub-group-list a:hover, #root-label:hover {
-    box-shadow: inset 0 0 5px #000000 !important;
-}
-
-.group-list li label:active, ul.sub-group-list a:active, #root-label:active {
-    box-shadow: inset 0 0 10px 2px #000000 !important;
-}
-
-.modal-body .button:focus, .modal-body textarea:focus {
-    outline: 2px dashed #ebbc4a;
-}
-
-.modal-body .button:hover, .gm-style-iw button.button:hover {
-    filter: brightness(150%);
-}
-
-.alertify-logs {
-    z-index: 100;
-}
-
-.alertify .dialog .msg {
-    color: black;
-}
-
-.alertify-logs > .default {
-    background-image: url(/img/ingress-background-dark.png) !important;
-}
-
-.btn-xs {
-    margin-left: 8px;
-    padding: 0px 7px 1px !important;
-    box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
-    -webkit-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
-    -moz-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
-}
-
-kbd {
-    display: inline-block;
-    padding: 3px 5px;
-    font: 11px SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
-    line-height: 10px;
-    color: #444d56;
-    vertical-align: middle;
-    background-color: #fafbfc;
-    border: 1px solid #d1d5da;
-    border-bottom-color: #c6cbd1;
-    border-radius: 3px;
-    box-shadow: inset 0 -1px 0 #c6cbd1;
-}
-
-.dropdown-menu {
-    margin: 0 !important;
-}
-
-.opr-yellow {
-    color: #F3EADA;
-}
-
-#submitAndSkipLowQuality, #submitAndSkipDuplicate {
-    margin-left: 32px;
-    margin-right: 32px;
-}
-
-#profile-stats > div {
-    width: 60%;
-}
-
-#scannerOffsetContainer {
-    margin-top: 16px;
-}
-
-#wfrt_preferences_button {
-    cursor: pointer;
-    margin-right: 20px;
-    margin-left: 20px;
-    color: rgb(157,157,157);
-}
-
-#wfrt_custom_presets_card {
-    width: 100%;
-    height: auto;
-    min-height: unset;
-    margin-left: 15px;
-}
-
-#submitFF {
-    margin-right: 16px;
-}
-
-@media (min-width: 768px) {
-    div.modal-custom1 {
-        width: 500px;
-        max-width: unset !important;
-    }
-}
-
-.card-area .card-row-container {
-    max-width: unset !important;
-}
-`
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
 
