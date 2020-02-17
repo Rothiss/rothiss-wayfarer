@@ -9,9 +9,9 @@
 // @grant           unsafeWindow
 // @grant           GM_notification
 // @grant           GM_addStyle
-// @downloadURL     https://gitlab.com/1110101/opr-tools/raw/feature/wayfarerSupport/opr-tools.user.js
-// @updateURL       https://gitlab.com/1110101/opr-tools/raw/feature/wayfarerSupport/opr-tools.user.js
-// @supportURL      https://gitlab.com/1110101/opr-tools/issues
+// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
+// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
+// @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
 
