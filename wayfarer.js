@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.3
+// @version         0.1.4
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -42,13 +42,12 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100001,
-    PREFERENCES: 'wfr_prefs',
+    VERSION: 100002,
+    PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
         KEYBOARD_NAV: 'keyboard_nav',
         NORWAY_MAP_LAYER: 'norway_map_layer',
-        PRESET_FEATURE: 'preset_feature',
         SCANNER_OFFSET_FEATURE: 'scanner_offset_feature',
         SCANNER_OFFSET_UI: 'scanner_offset_ui',
         COMMENT_TEMPLATES: 'comment_templates',
@@ -56,7 +55,7 @@ const ROT_WFR = {
         MAP_CIRCLE_40: 'map_circle_40',
 
         REFRESH: 'refresh',
-        REFRESH_NOTI_DESKTOP: 'refresh_noti_desktop',
+        REFRESH_DESKTOP_NOTIFICATION: 'REFRESH_DESKTOP_NOTIFICATION',
     },
 
     PREFIX: 'rot_wfr_',
@@ -488,12 +487,11 @@ class Preferences
         this.defaults = {
             [ROT_WFR.OPTIONS.KEYBOARD_NAV]: true,
             [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: false,
-            [ROT_WFR.OPTIONS.PRESET_FEATURE]: true,
             [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
             [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: false,
             [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: true,
             [ROT_WFR.OPTIONS.REFRESH]: true,
-            [ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP]: true,
+            [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: true,
             [ROT_WFR.OPTIONS.MAP_CIRCLE_20]: false,
             [ROT_WFR.OPTIONS.MAP_CIRCLE_40]: false,
         }
@@ -514,27 +512,28 @@ class Preferences
             rot_wfrPreferences.classList.toggle('hide')
         } else {
             pageContainer.insertAdjacentHTML('afterbegin', `
-<section id="rot_wfr_sidepanel_container">
-    <div class="row">
-        <div class="col-lg-12">
-            <h4 class="gold">Rothiss Wayfarer Preferences</h4>
-        </div>
-        
-        <div class="col-lg-12">
-            <div class="btn-group" role="group">
-                <button id="import_all" class="btn btn-success">Import</button>
-                <button id="export_all" class="btn btn-success">Export</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="rot_wfr_options"></div>
-    
-    <a id="rot_wfr_reload" class="btn btn-warning hide">
-        <span class="glyphicon glyphicon-refresh"></span>
-        Reload to apply changes
-    </a>
-</section>`)
+                <section id="rot_wfr_sidepanel_container">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <h4 class="gold">Rothiss Wayfarer Preferences</h4>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="btn-group" role="group">
+                                <button id="import_all" class="btn btn-success">Import</button>
+                                <button id="export_all" class="btn btn-success">Export</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="rot_wfr_options"></div>
+                    
+                    <a id="rot_wfr_reload" class="btn btn-warning hide">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                        Reload to apply changes
+                    </a>
+                </section>
+            `)
 
             let optionsContainer = w.document.getElementById('rot_wfr_options')
             let reloadButton = w.document.getElementById('rot_wfr_reload')
@@ -577,8 +576,7 @@ class Preferences
 
             w.document.getElementById('import_all').addEventListener('click', () =>
             {
-                alertify.okBtn('Import').prompt('Paste here:',
-                    (value, event) =>
+                alertify.okBtn('Import').prompt('Paste here:', (value, event) =>
                     {
                         event.preventDefault()
 
@@ -876,6 +874,7 @@ function init()
                 if (mutationRecord.addedNodes.length > 0 && mutationRecord.addedNodes[0].className === 'modal fade ng-isolate-scope') {
                     // adds keyboard-numbers to low quality sub-sub-lists
                     let sublistItems = mutationRecord.addedNodes[0].querySelectorAll('ul.sub-group-list')
+
                     if (sublistItems !== undefined) {
                         sublistItems.forEach(el =>
                         {
@@ -885,17 +884,21 @@ function init()
                                 el2.insertAdjacentHTML('afterbegin', `<kbd>${i++}</kbd> `)
                             })
                         })
+
                         let i = 1
+
                         // adds keyboard numbers to low quality sub-list
                         mutationRecord.addedNodes[0].querySelectorAll('label.sub-group').forEach(el2 =>
                         {
                             el2.insertAdjacentHTML('beforeend', `<kbd class="pull-right ">${i++}</kbd>`)
                         })
                     }
+
                     // skip "Your analysis has been recorded" dialog
                     if (skipDialog) {
                         if (mutationRecord.addedNodes[0].querySelector('.modal-body button[ng-click="answerCtrl3.reloadPage()"]') !== null) {
                             w.document.location.href = '/review'
+
                             return
                         }
                     }
@@ -911,115 +914,6 @@ function init()
         if (preferences.get(ROT_WFR.OPTIONS.COMMENT_TEMPLATES)) {
             commentTemplates()
         }
-
-        /* region presets start */
-        if (preferences.get(ROT_WFR.OPTIONS.PRESET_FEATURE)) {
-            const customPresetUI = `
-                <div class="card" id="rot_wfr_custom_presets_card">
-                    <div class="card__body">
-                        <div>
-                            Presets&nbsp;
-                            <button class="btn btn-default btn-xs" id="addPreset">
-                                +
-                            </button>
-                        </div>
-                        <div class='btn-group' id="rot_wfr_custom_presets"></div>
-                    </div>
-                </div>`
-
-            w.document.querySelector('.card-row-container').insertAdjacentHTML('afterbegin', customPresetUI)
-
-            addCustomPresetButtons()
-
-            // we have to inject the tooltip to angular
-            w.$injector.invoke(['$compile', ($compile) =>
-            {
-                let compiledSubmit = $compile(`<span class="glyphicon glyphicon-info-sign darkgray" uib-tooltip-trigger="outsideclick" uib-tooltip-placement="left" tooltip-class="goldBorder" uib-tooltip="(Wayfarer-Tools) Create your own presets for stuff like churches, playgrounds or crosses'.\nHowto: Answer every question you want included and click on the +Button.\n\nTo delete a preset shift-click it."></span>&nbsp; `)(w.$scope(document.getElementById('descriptionDiv')))
-
-                w.document.getElementById('addPreset').insertAdjacentElement('beforebegin', compiledSubmit[0])
-            }])
-
-            // click listener for +preset button
-            w.document.getElementById('addPreset').addEventListener('click', event =>
-            {
-                alertify.okBtn('Save').prompt('New preset name:',
-                    (value, event) =>
-                    {
-                        event.preventDefault()
-
-                        if (value === 'undefined' || value === '') {
-                            return
-                        }
-
-                        saveCustomPreset(value, ansController, whatController)
-
-                        alertify.success(`✔ Created preset <i>${value}</i>`)
-
-                        addCustomPresetButtons()
-                    }, event =>
-                    {
-                        event.preventDefault()
-                    },
-                )
-            })
-
-            let clickListener = event =>
-            {
-                const source = event.target || event.srcElement
-
-                let value = source.id
-
-                if (value === '' || event.target.nodeName !== 'BUTTON') {
-                    return
-                }
-
-                let preset = rotWfrCustomPresets.find(item => item.uid === value)
-
-                if (event.shiftKey) {
-                    alertify.log(`Deleted preset <i>${preset.label}</i>`)
-
-                    w.document.getElementById(preset.uid).remove()
-
-                    deleteCustomPreset(preset)
-
-                    return
-                }
-
-                ansController.formData.quality = preset.quality
-                ansController.formData.description = preset.description
-                ansController.formData.cultural = preset.cultural
-                ansController.formData.uniqueness = preset.uniqueness
-                ansController.formData.location = preset.location
-                ansController.formData.safety = preset.safety
-
-                // the controller's set by ID function doesn't work and autocomplete breaks if there are any spaces
-                // so set the field to the first word from name and match autocomplete by ID
-                // at the very least, I know this will set it and leave the UI looking like it was manually set.
-                whatController.whatInput = preset.nodeName.split(' ')[0]
-
-                let nodes = whatController.getWhatAutocomplete()
-
-                for (let i = 0; i < nodes.length; i++) {
-                    if (nodes[i].id === preset.nodeId) {
-                        whatController.setWhatAutocompleteNode(nodes[i])
-
-                        break
-                    }
-                }
-
-                whatController.whatInput = ''
-
-                // update ui
-                event.target.blur()
-
-                w.$rootScope.$apply()
-
-                alertify.success(`✔ Applied <i>${preset.label}</i>`)
-            }
-
-            w.document.getElementById('rot_wfr_custom_presets').addEventListener('click', clickListener, false)
-        }
-        /* endregion presets end */
 
         // make photo filmstrip scrollable
         const filmstrip = w.document.getElementById('map-filmstrip')
@@ -1942,27 +1836,6 @@ function init()
         map.setMapTypeId(w.localStorage.getItem(mapType) || defaultMapType)
     }
 
-    // // move submit button to right side of classification-div. don't move on mobile devices / small width
-    // function moveSubmitButton () {
-    //   const submitDiv = w.document.querySelectorAll('#submitDiv, #submitDiv + .text-center')
-    //
-    //   if (screen.availWidth > 768) {
-    //     let newSubmitDiv = w.document.createElement('div')
-    //     const classificationRow = w.document.querySelector('.classification-row')
-    //     newSubmitDiv.className = 'col-xs-12 col-sm-6'
-    //     submitDiv[0].style.setProperty('margin-top', '16px')
-    //     newSubmitDiv.appendChild(submitDiv[0])
-    //     newSubmitDiv.appendChild(submitDiv[1])
-    //     classificationRow.insertAdjacentElement('afterend', newSubmitDiv)
-    //
-    //     // edit-page - remove .col-sm-offset-3 from .classification-row (why did you add this, niantic?
-    //     classificationRow.classList.remove('col-sm-offset-3')
-    //     return newSubmitDiv
-    //   } else {
-    //     return submitDiv[0]
-    //   }
-    // }
-
     // expand automatically the "What is it?" filter text box
     function expandWhatIsItBox()
     {
@@ -2102,9 +1975,9 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         cbxRefresh.type = 'checkbox'
         cbxRefresh.checked = preferences.get(ROT_WFR.OPTIONS.REFRESH) === 'true'
 
-        cbxRefreshDesktop.id = ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP
+        cbxRefreshDesktop.id = ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION
         cbxRefreshDesktop.type = 'checkbox'
-        cbxRefreshDesktop.checked = preferences.get(ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP) === 'true'
+        cbxRefreshDesktop.checked = preferences.get(ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION) === 'true'
 
         let refreshPanel = w.document.createElement('div')
         refreshPanel.className = 'panel panel-ingress'
@@ -2195,7 +2068,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             if (w.document.hidden) { // if tab in background: flash favicon
                 let flag = true
 
-                if (preferences.get(ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP) === 'true') {
+                if (preferences.get(ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION) === 'true') {
                     GM_notification({
                         'title': 'Wayfarer - New Wayspot Analysis Available',
                         'text': 'by Wayfarer-Tools',
@@ -2419,9 +2292,8 @@ const strings = {
         [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
         [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
         [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: 'Norwegian map layer',
-        [ROT_WFR.OPTIONS.PRESET_FEATURE]: 'Rating presets',
         [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
-        [ROT_WFR.OPTIONS.REFRESH_NOTI_DESKTOP]: '↳ With desktop notification',
+        [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
