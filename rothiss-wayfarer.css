@@ -1,0 +1,208 @@
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    margin: 0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover {
+    background-color: unset;
+}
+
+.dropdown .dropdown-menu {
+    left: 0px;
+    right: unset;
+    width: unset;
+}
+
+.modal-sm {
+    width: 350px !important;
+}
+
+.panel-ingress {
+    background-color: #004746;
+    border: 1px solid #00ffff;
+    border-radius: 1px;
+    box-shadow: inset 0 0 6px rgba(255, 255, 255, 1);
+    color: #00ffff;
+}
+
+[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+}
+
+[data-tooltip]:before,
+[data-tooltip]:after {
+    visibility: hidden;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+[data-tooltip]:before {
+    position: absolute;
+    top: 150%;
+    left: 50%;
+    margin-bottom: 5px;
+    margin-left: -80px;
+    padding: 7px;
+    width: relative;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    background-color: #000000;
+    background-color: hsla(0, 0%, 20%, 0.9);
+    color: #ffffff;
+    content: attr(data-tooltip);
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.2;
+    z-index: 100;
+}
+
+[data-tooltip]:after {
+    position: absolute;
+    top: 132%;
+    left: relative;
+    width: 0;
+    border-bottom: 5px solid #000000;
+    border-bottom: 5px solid hsla(0, 0%, 20%, 0.9);
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    content: " ";
+    font-size: 0;
+    line-height: 0;
+}
+
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after {
+    visibility: visible;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+    opacity: 1;
+}
+
+.titleEditBox:hover {
+    box-shadow: inset 0 0 20px #ebbc4a;
+}
+
+.titleEditBox:active {
+    box-shadow: inset 0 0 15px 2px white;
+}
+
+.group-list li label:hover, ul.sub-group-list a:hover, #root-label:hover {
+    box-shadow: inset 0 0 5px #000000 !important;
+}
+
+.group-list li label:active, ul.sub-group-list a:active, #root-label:active {
+    box-shadow: inset 0 0 10px 2px #000000 !important;
+}
+
+.modal-body .button:focus, .modal-body textarea:focus {
+    outline: 2px dashed #ebbc4a;
+}
+
+.modal-body .button:hover, .gm-style-iw button.button:hover {
+    filter: brightness(150%);
+}
+
+.alertify-logs {
+    z-index: 100;
+}
+
+.alertify .dialog .msg {
+    color: black;
+}
+
+.btn-xs {
+    margin-left: 8px;
+    padding: 0px 7px 1px !important;
+    box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
+    -webkit-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
+    -moz-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
+}
+
+kbd {
+    display: inline-block;
+    padding: 3px 5px;
+    font: 11px SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+    line-height: 10px;
+    color: #444d56;
+    vertical-align: middle;
+    background-color: #fafbfc;
+    border: 1px solid #d1d5da;
+    border-bottom-color: #c6cbd1;
+    border-radius: 3px;
+    box-shadow: inset 0 -1px 0 #c6cbd1;
+}
+
+.dropdown-menu {
+    margin: 0 !important;
+}
+
+.opr-yellow {
+    color: #f3eada;
+}
+
+#submitAndSkipLowQuality, #submitAndSkipDuplicate {
+    margin-left: 32px;
+    margin-right: 32px;
+}
+
+#scannerOffsetContainer {
+    margin-top: 16px;
+}
+
+#rot_wfr_preferences_button {
+    cursor: pointer;
+    margin-right: 20px;
+    margin-left: 20px;
+    color: rgb(157, 157, 157);
+}
+
+#rot_wfr_custom_presets_card {
+    width: 100%;
+    height: auto;
+    min-height: unset;
+    margin-left: 15px;
+}
+
+#submitFF {
+    margin-right: 16px;
+}
+
+@media (min-width: 768px) {
+    div.modal-custom1 {
+        width: 500px;
+        max-width: unset !important;
+    }
+}
+
+.card-area .card-row-container {
+    max-width: unset !important;
+}
+
+#rot_wfr_sidepanel_container {
+    background: black;
+    border-left: 2px gold inset;
+    border-top: 2px gold inset;
+    border-bottom: 2px gold inset;
+    color: white;
+    position: absolute;
+    right: 0;
+    height: 90%;
+    padding: 0 20px;
+    z-index: 10;
+    width: 400px;
+}
