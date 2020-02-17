@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.18
+// @version         0.1.19
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -44,7 +44,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100012,
+    VERSION: 100013,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -396,12 +396,6 @@ function init()
 
     function initScript()
     {
-        addGlobalCss()
-
-        if (preferences.get(ROT_WFR.OPTIONS.DARK_MODE)) {
-            addDarkModeCss()
-        }
-
         addOptionsButton()
 
         const subMissionDiv = w.document.getElementById('NewSubmissionController')
@@ -436,30 +430,6 @@ function init()
             startExpirationTimer(subController)
 
             versionCheck()
-        }
-    }
-
-    function addGlobalCss()
-    {
-        let customCSS = GM_getResourceText('rothissWayfarerCSS')
-
-        GM_addStyle(customCSS)
-
-        // noop after first run
-        addGlobalCss = () =>
-        {
-        }
-    }
-
-    function addDarkModeCss()
-    {
-        let darkModeCss = GM_getResourceText('rothissWayfarerDarkModeCSS')
-
-        GM_addStyle(darkModeCss)
-
-        // noop after first run
-        addDarkModeCss = () =>
-        {
         }
     }
 
@@ -1774,6 +1744,40 @@ function init()
             ev.target.closest('div.default.show').remove()
         }).reset()
     }
+
+    /**
+     * Make sure the CSS is loaded first
+     */
+
+    function addGlobalCss()
+    {
+        let customCSS = GM_getResourceText('rothissWayfarerCSS')
+
+        GM_addStyle(customCSS)
+
+        // noop after first run
+        addGlobalCss = () =>
+        {
+        }
+    }
+
+    function addDarkModeCss()
+    {
+        let darkModeCss = GM_getResourceText('rothissWayfarerDarkModeCSS')
+
+        GM_addStyle(darkModeCss)
+
+        // noop after first run
+        addDarkModeCss = () =>
+        {
+        }
+    }
+
+    addGlobalCss()
+
+    if (preferences.get(ROT_WFR.OPTIONS.DARK_MODE)) {
+        addDarkModeCss()
+    }
 }
 
 setTimeout(() =>
@@ -1789,7 +1793,7 @@ const strings = {
         [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
         [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
     },
-    changelog: `No more profile changing`,
+    changelog: `No more white screens on refresh!`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`

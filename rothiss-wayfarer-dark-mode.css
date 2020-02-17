@@ -30,7 +30,7 @@
 
 .niantic-loader__shadow {
     filter: blur(4px);
-    background: #cccccc;
+    background: var(--darkened-background);
     animation: shadow-on-dark 2.2s ease-in-out infinite;
 }
 
