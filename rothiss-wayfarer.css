@@ -206,3 +206,7 @@ kbd {
     z-index: 10;
     width: 400px;
 }
+
+.progress-percentage {
+    width: 50px !important;
+}

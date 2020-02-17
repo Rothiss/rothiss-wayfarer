@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.16
+// @version         0.1.17
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -1516,10 +1516,10 @@ function init()
 
         const numberSpans = stats.querySelectorAll('span.stats-right')
 
-        numberSpans[0].insertAdjacentHTML('beforeend', `, <span class=''>100%</span>`)
-        numberSpans[1].insertAdjacentHTML('beforeend', `, <span class=''>${acceptedPercent}%</span>`)
-        numberSpans[2].insertAdjacentHTML('beforeend', `, <span class=''>${rejectedPercent}%</span>`)
-        numberSpans[3].insertAdjacentHTML('beforeend', `, <span class=''>${duplicatedPercent}%</span>`)
+        numberSpans[0].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>100%</div>`)
+        numberSpans[1].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>${acceptedPercent}%</div>`)
+        numberSpans[2].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>${rejectedPercent}%</div>`)
+        numberSpans[3].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>${duplicatedPercent}%</div>`)
 
         stats.querySelectorAll('h4')[2].insertAdjacentHTML('afterend', `
             <br>
@@ -1535,7 +1535,7 @@ function init()
             stats.insertAdjacentHTML('beforeEnd', `
                 <br>
                 <div>
-                    Next Ingress Recon badge tier: <b>${nextBadgeName} (${nextBadgeCount})</b>
+                    Next Ingress Recon badge tier: <strong>${nextBadgeName} (${nextBadgeCount})</strong>
                     <br>
                     <div class='progress'>
                         <div class='progress-bar progress-bar-warning'
