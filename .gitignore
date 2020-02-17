@@ -1,0 +1,54 @@
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases
+*.log
+*.sqlite
+*.sql
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# GULP generated files
+*.js.map
+*.css.map
+
+# IDE files
+nbproject/
+.~lock.*
+.buildpath
+.idea
+.project
+.svn
+*.sublime-project
+*.sublime-workspace
+
+# Dependencies
+/bower_components/
+/node_modules/
+/vendor/
+
+# Custom
+/private
+!/private/.gitkeep
