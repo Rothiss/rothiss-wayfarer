@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.7
+// @version         0.1.8
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -42,20 +42,17 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100005,
+    VERSION: 100006,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
-        KEYBOARD_NAV: 'keyboard_nav',
-        NORWAY_MAP_LAYER: 'norway_map_layer',
-        SCANNER_OFFSET_FEATURE: 'scanner_offset_feature',
-        SCANNER_OFFSET_UI: 'scanner_offset_ui',
         COMMENT_TEMPLATES: 'comment_templates',
-        MAP_CIRCLE_20: 'map_circle_20',
-        MAP_CIRCLE_40: 'map_circle_40',
-
+        DARK_MODE: 'dark_mode',
+        KEYBOARD_NAV: 'keyboard_nav',
         REFRESH: 'refresh',
         REFRESH_DESKTOP_NOTIFICATION: 'refresh_desktop_notifications',
+        SCANNER_OFFSET_FEATURE: 'scanner_offset_feature',
+        SCANNER_OFFSET_UI: 'scanner_offset_ui',
     },
 
     PREFIX: 'rot_wfr_',
@@ -72,21 +69,6 @@ const ROT_WFR = {
 
     FROM_REFRESH: 'from_refresh', // sessionStorage
 }
-
-const strings = {
-    options: {
-        [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
-        [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
-        [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: 'Norwegian map layer',
-        [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
-        [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
-        [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
-        [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
-    },
-    changelog: `Nothing changed tho... it's all a lie`,
-}
-
-const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
 
 function addGlobalCss()
 {
@@ -217,10 +199,6 @@ function addGlobalCss()
         
         .alertify .dialog .msg {
             color: black;
-        }
-        
-        .alertify-logs > .default {
-            background-image: url(/img/ingress-background-dark.png) !important;
         }
         
         .btn-xs {
@@ -501,7 +479,6 @@ class Preferences
         this.options = {}
         this.defaults = {
             [ROT_WFR.OPTIONS.KEYBOARD_NAV]: true,
-            [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: false,
             [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
             [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: false,
             [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: true,
@@ -751,7 +728,6 @@ function init()
     const w = typeof unsafeWindow === 'undefined' ? window : unsafeWindow
 
     let tryNumber = 15
-    let rotWfrCustomPresets
     let browserLocale = window.navigator.languages[0] || window.navigator.language || 'en'
     let preferences = new Preferences()
 
@@ -1804,14 +1780,6 @@ function init()
             { provider: PROVIDERS.GOOGLE, id: 'hybrid' },
         ]
 
-        if (preferences.get(ROT_WFR.OPTIONS.NORWAY_MAP_LAYER)) {
-            types.push(
-                { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_topo`, code: 'topo4', label: 'NO - Topo' },
-                { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_raster`, code: 'toporaster3', label: 'NO - Raster' },
-                { provider: PROVIDERS.KARTVERKET, id: `${PROVIDERS.KARTVERKET}_sjo`, code: 'sjokartraster', label: 'NO - Sjøkart' },
-            )
-        }
-
         const defaultMapType = 'hybrid'
 
         map.setOptions({
@@ -2255,10 +2223,6 @@ function init()
                         <td>Valuate current selected field (the yellow highlighted one)</td>
                     </tr>
                     <tr>
-                        <td><kbd>Shift</kbd> + <kbd>Keys 1-5</kbd></td>
-                        <td>Apply custom preset (if exists)</td>
-                    </tr>
-                    <tr>
                         <td><kbd>Keys 1-7</kbd> / <kbd>Numpad 1-7</kbd></td>
                         <td>Rejection popup: Select list element</td>
                     </tr>
@@ -2334,3 +2298,18 @@ setTimeout(() =>
 {
     init()
 }, 250)
+
+const strings = {
+    options: {
+        [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
+        [ROT_WFR.OPTIONS.DARK_MODE]: 'Dark mode',
+        [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
+        [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
+        [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
+        [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
+        [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
+    },
+    changelog: `Nothing changed tho... it's all a lie`,
+}
+
+const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
