@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name            Rothiss - Wayfarer (tools)
-// @version         0.1.19
+// @name            Rothiss - Wayfarer
+// @version         0.2.0
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -9,11 +9,11 @@
 // @grant           GM_notification
 // @grant           GM_addStyle
 // @grant           GM_getResourceText
-// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
-// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
+// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/wayfarer.js
+// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/wayfarer.js
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
-// @resource        rothissWayfarerCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer.css
-// @resource        rothissWayfarerDarkModeCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer-dark-mode.css
+// @resource        rothissWayfarerCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/rothiss-wayfarer.css
+// @resource        rothissWayfarerDarkModeCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/rothiss-wayfarer-dark-mode.css
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
 // ==/UserScript==
@@ -44,7 +44,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100013,
+    VERSION: 100015,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -1793,7 +1793,7 @@ const strings = {
         [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
         [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
     },
-    changelog: `No more white screens on refresh!`,
+    changelog: `Master has been updated!!!`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
