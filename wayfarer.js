@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.14
+// @version         0.1.15
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -12,9 +12,9 @@
 // @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
 // @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
+// @resource        rothissWayfarerCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer.css
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
-// @require         rothissWayfarerCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer.css
 // ==/UserScript==
 
 /*
@@ -43,7 +43,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100009,
+    VERSION: 100010,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
