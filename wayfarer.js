@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.4
+// @version         0.1.5
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -42,7 +42,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100002,
+    VERSION: 100003,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -879,6 +879,7 @@ function init()
                         sublistItems.forEach(el =>
                         {
                             let i = 1
+
                             el.querySelectorAll('li > a').forEach(el2 =>
                             {
                                 el2.insertAdjacentHTML('afterbegin', `<kbd>${i++}</kbd> `)
@@ -946,7 +947,6 @@ function init()
             mapMarker(subController.markers)
         }
 
-        mapOriginCircle(subController.map2)
         mapMarker(subController.markers)
         mapTypes(subController.map, false)
         mapTypes(subController.map2, true)
@@ -957,60 +957,8 @@ function init()
         subController.resetStreetView = () =>
         {
             _resetStreetView()
-            mapOriginCircle(subController.map2)
+
             mapTypes(subController.map2, true)
-        }
-
-        // adding a green 40m circle and a smaller 20m circle around the new location marker that updates on dragEnd
-        let draggableMarkerCircle
-        let draggableMarkerCircleSmall
-        let _showDraggableMarker = subController.showDraggableMarker
-
-        subController.showDraggableMarker = () =>
-        {
-            _showDraggableMarker()
-
-            w.getService('NewSubmissionDataService')
-
-            let newLocMarker = w.NewSubmissionDataService.getNewLocationMarker()
-
-            if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_40)) {
-                google.maps.event.addListener(newLocMarker, 'dragend', function()
-                {
-                    if (draggableMarkerCircle == null) {
-                        draggableMarkerCircle = new google.maps.Circle({
-                            map: subController.map2,
-                            center: newLocMarker.position,
-                            radius: 40,
-                            strokeColor: '#4caf50', // material green 500
-                            strokeOpacity: 1,
-                            strokeWeight: 2,
-                            fillOpacity: 0,
-                        })
-                    } else {
-                        draggableMarkerCircle.setCenter(newLocMarker.position)
-                    }
-                })
-            }
-
-            if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_20)) {
-                google.maps.event.addListener(newLocMarker, 'dragend', function()
-                {
-                    if (draggableMarkerCircleSmall == null) {
-                        draggableMarkerCircleSmall = new google.maps.Circle({
-                            map: subController.map2,
-                            center: newLocMarker.position,
-                            radius: 20,
-                            strokeColor: '#4ccf50',
-                            strokeOpacity: 1,
-                            strokeWeight: 2,
-                            fillOpacity: 0,
-                        })
-                    } else {
-                        draggableMarkerCircleSmall.setCenter(newLocMarker.position)
-                    }
-                })
-            }
         }
 
         // bind click-event to Dup-Images-Filmstrip. result: a click to the detail-image the large version is loaded in another tab
@@ -1025,6 +973,7 @@ function init()
                 imgDups[imgSep].addEventListener('click', () =>
                 {
                     const imgDup = w.document.querySelector('#content > img')
+
                     if (imgDup !== null) {
                         imgDup.removeEventListener('click', openFullImage)
                         imgDup.addEventListener('click', openFullImage)
@@ -1036,58 +985,70 @@ function init()
 
         // add translate buttons to title and description (if existing)
         let lang = 'en'
+
         try {
             lang = browserLocale.split('-')[0]
         } catch (e) {
         }
+
         const titleContainer = w.document.querySelector('h1.title-description')
         const content = titleContainer.innerText.trim()
-        let a = w.document.createElement('a')
+
         let span = w.document.createElement('span')
         span.className = 'glyphicon glyphicon-book'
         span.innerHTML = ' '
+
+        let a = w.document.createElement('a')
         a.appendChild(span)
         a.className = 'translate-title btn btn-default pull-right'
         a.target = 'translate'
         a.style.setProperty('padding', '0px 4px')
         a.href = `https://translate.google.com/#auto/${lang}/${encodeURIComponent(content)}`
         a.id = 'rot_wfr_translate_title'
+
         titleContainer.insertAdjacentElement('beforeend', a)
 
         const descContainer = w.document.querySelector('h4.title-description')
+
         if (descContainer.innerText !== '&lt;No description&gt;' && descContainer.innerText !== '') {
-            a = w.document.createElement('a')
             span = w.document.createElement('span')
             span.className = 'glyphicon glyphicon-book'
             span.innerHTML = ' '
+
+            a = w.document.createElement('a')
             a.appendChild(span)
             a.className = 'translate-description btn btn-default pull-right'
             a.target = 'translate'
             a.style.setProperty('padding', '0px 4px')
             a.href = `https://translate.google.com/#auto/${lang}/${encodeURIComponent(descContainer.innerText.trim())}`
             a.id = 'rot_wfr_translate_desc'
+
             descContainer.insertAdjacentElement('beforeend', a)
             descContainer.insertAdjacentHTML('beforebegin', '<hr>')
         }
 
         const supportingStatement = w.document.querySelector('.supporting-statement-central-field p')
+
         if (supportingStatement != null && supportingStatement.innerText !== '') {
-            a = w.document.createElement('a')
             span = w.document.createElement('span')
             span.className = 'glyphicon glyphicon-book'
             span.innerHTML = ' '
+
+            a = w.document.createElement('a')
             a.appendChild(span)
             a.className = 'translate-supporting btn btn-default pull-right'
             a.target = 'translate'
             a.style.setProperty('padding', '0px 4px')
             a.href = `https://translate.google.com/#auto/${lang}/${encodeURIComponent(supportingStatement.innerText)}`
             a.id = 'rot_wfr_translate_support'
+
             supportingStatement.insertAdjacentElement('beforebegin', a)
         }
 
         // automatically open the first listed possible duplicate
         try {
             const e = w.document.querySelector('#map-filmstrip > ul > li:nth-child(1) > img')
+
             if (e !== null) {
                 setTimeout(() =>
                 {
@@ -1101,9 +1062,11 @@ function init()
 
         // Fix rejectComment width
         let _showLowQualityModal = ansController.showLowQualityModal
+
         ansController.showLowQualityModal = () =>
         {
             _showLowQualityModal()
+
             setTimeout(() =>
             {
                 let rejectReasonTA = w.document.querySelector('textarea[ng-model="answerCtrl2.rejectComment"]')
@@ -1114,7 +1077,9 @@ function init()
                     let target = w.document.querySelector('.modal-body button:last-child')
                     let compiledSubmit = $compile(`<button id="submitAndSkipLowQuality" class="button-primary" ng-click="answerCtrl2.confirmLowQuality()" ng-disabled="!(answerCtrl2.readyToSubmitSpam())" disabled="disabled">
                         <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;<span class="glyphicon glyphicon-forward"></span></button>`)(w.$scope(target))
+
                     target.insertAdjacentElement('beforebegin', compiledSubmit[0])
+
                     w.document.getElementById('submitAndSkipLowQuality').addEventListener('click', () =>
                     {
                         skipDialog = true
@@ -1125,8 +1090,9 @@ function init()
 
         /* global markDuplicatePressed */
         let _markDuplicatePressed = markDuplicatePressed
+
         markDuplicatePressed = (guid) =>
-        { // eslint-disable-line no-global-assign
+        {
             _markDuplicatePressed(guid)
             setTimeout(() =>
             {
@@ -1135,7 +1101,9 @@ function init()
                     let target = w.document.querySelector('.modal-body button:last-child')
                     let compiledSubmit = $compile(`<button id="submitAndSkipDuplicate" class="button-primary" ng-click="answerCtrl2.confirmDuplicate()">
                       <span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;<span class="glyphicon glyphicon-forward"></span></button>`)(w.$scope(target))
+
                     target.insertAdjacentElement('beforebegin', compiledSubmit[0])
+
                     w.document.getElementById('submitAndSkipDuplicate').addEventListener('click', () =>
                     {
                         skipDialog = true
@@ -1164,9 +1132,11 @@ function init()
             ansController.resetLowQuality = () =>
             {
                 _resetLowQuality()
+
                 selectedReasonGroup = -1
                 selectedReasonSubGroup = -1
                 currentSelectable = 0
+
                 highlight()
             }
 
@@ -1179,8 +1149,10 @@ function init()
                 {
                     element.style.setProperty('border', 'none')
                 })
+
                 if (currentSelectable <= maxItems - 2) {
                     starsAndSubmitButtons[currentSelectable].style.setProperty('border', '2px dashed #E47252')
+
                     submitAndNext.blur()
                     submitButton.blur()
                 } else if (currentSelectable === 6) {
@@ -1190,28 +1162,25 @@ function init()
                 }
             }
 
+            /**
+             *  Keycodes:
+             *      8: Backspace
+             *      9: TAB
+             *      13: Enter
+             *      16: Shift
+             *      27: Escape
+             *      32: Space
+             *      49-53:  Keys 1-5
+             *      68: D
+             *      97-101: NUMPAD 1-5
+             *      107: NUMPAD +
+             *      109: NUMPAD -
+             *      111: NUMPAD /
+             */
             addEventListener('keydown', (event) =>
             {
-                /*
-                keycodes:
-
-                8: Backspace
-                9: TAB
-                13: Enter
-                16: Shift
-                27: Escape
-                32: Space
-                68: D
-                107: NUMPAD +
-                109: NUMPAD -
-                111: NUMPAD /
-
-                49 - 53:  Keys 1-5
-                97 - 101: NUMPAD 1-5
-
-                 */
-
                 let numkey = null
+
                 if (event.keyCode >= 49 && event.keyCode <= 55) {
                     numkey = event.keyCode - 48
                 } else if (event.keyCode >= 97 && event.keyCode <= 103) {
@@ -1224,65 +1193,86 @@ function init()
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && w.document.querySelector('a.button[href="/review"]')) {
                     // "analyze next" button
                     w.document.location.href = '/review'
+
                     event.preventDefault()
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && w.document.querySelector('[ng-click="answerCtrl2.confirmLowQuality()"]')) {
                     // submit low quality rating
                     w.document.querySelector('[ng-click="answerCtrl2.confirmLowQuality()"]').click()
+
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && w.document.querySelector('[ng-click="answerCtrl2.confirmLowQualityOld()"]')) {
                     // submit low quality rating alternate
                     w.document.querySelector('[ng-click="answerCtrl2.confirmLowQualityOld()"]').click()
+
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if ((event.keyCode === 68) && w.document.querySelector('#content > button')) {
                     // click first/selected duplicate (key D)
                     w.document.querySelector('#content > button').click()
+
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if (event.keyCode === 84) {
                     // click on translate title link (key T)
                     const link = w.document.querySelector('#rot_wfr_translate_title')
+
                     if (link) {
                         link.click()
+
                         event.preventDefault()
                     }
                 } else if (event.keyCode === 89) {
                     // click on translate description link (key Y)
                     const link = w.document.querySelector('#rot_wfr_translate_desc')
+
                     if (link) {
                         link.click()
+
                         event.preventDefault()
                     }
                 } else if (event.keyCode === 85) {
                     // click on translate extra info link (key U)
                     const link = w.document.querySelector('#rot_wfr_translate_support')
+
                     if (link) {
                         link.click()
+
                         event.preventDefault()
                     }
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && w.document.querySelector('[ng-click="answerCtrl2.confirmDuplicate()"]')) {
                     // submit duplicate
                     w.document.querySelector('[ng-click="answerCtrl2.confirmDuplicate()"]').click()
+
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && currentSelectable === maxItems) {
                     // submit normal rating
                     w.document.querySelector('[ng-click="answerCtrl.submitForm()"]').click()
+
                     event.preventDefault()
                 } else if ((event.keyCode === 27 || event.keyCode === 111) && w.document.querySelector('[ng-click="answerCtrl2.resetDuplicate()"]')) {
                     // close duplicate dialog
                     w.document.querySelector('[ng-click="answerCtrl2.resetDuplicate()"]').click()
+
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if ((event.keyCode === 27 || event.keyCode === 111) && w.document.querySelector('[ng-click="answerCtrl2.resetLowQuality()"]')) {
                     // close low quality ration dialog
                     w.document.querySelector('[ng-click="answerCtrl2.resetLowQuality()"]').click()
+
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if (event.keyCode === 27 || event.keyCode === 111) {
                     // return to first selection (should this be a portal)
                     currentSelectable = 0
+
                     event.preventDefault()
                 } else if (event.keyCode === 106 || event.keyCode === 220) {
                     // skip portal if possible
@@ -1297,7 +1287,9 @@ function init()
                         if (selectedReasonGroup === -1) {
                             try {
                                 w.document.getElementById('sub-group-' + numkey).click()
+
                                 selectedReasonGroup = numkey - 1
+
                                 w.document.querySelectorAll('label.sub-group kbd').forEach(el => el.classList.add('hide'))
                             } catch (err) {
                             }
@@ -1305,33 +1297,41 @@ function init()
                             if (selectedReasonSubGroup === -1) {
                                 try {
                                     w.document.querySelectorAll('#reject-reason ul ul')[selectedReasonGroup].children[numkey - 1].children[0].click()
+
                                     selectedReasonSubGroup = numkey - 1
                                 } catch (err) {
                                 }
                             } else {
                                 w.document.getElementById('root-label').click()
+
                                 selectedReasonGroup = -1
                                 selectedReasonSubGroup = -1
+
                                 w.document.querySelectorAll('label.sub-group kbd').forEach(el => el.classList.remove('hide'))
                             }
                         }
+
                         event.preventDefault()
                     }
                 } else if ((event.keyCode === 107 || event.keyCode === 9) && currentSelectable < maxItems) {
                     // select next rating
                     currentSelectable++
+
                     event.preventDefault()
                 } else if ((event.keyCode === 109 || event.keyCode === 16 || event.keyCode === 8) && currentSelectable > 0) {
                     // select previous rating
                     currentSelectable--
+
                     event.preventDefault()
                 } else if (numkey === null || currentSelectable > maxItems - 2) {
                     return
                 } else if (numkey !== null && event.shiftKey) {
                     try {
                         w.document.getElementsByClassName('customPresetButton')[numkey - 1].click()
+
                         if (!document.getElementById('submitFF').disabled) {
                             currentSelectable = 6
+
                             highlight()
                         }
                     } catch (e) {
@@ -1340,8 +1340,10 @@ function init()
                 } else {
                     // rating 1-5
                     starsAndSubmitButtons[currentSelectable].querySelectorAll('button.button-star')[numkey - 1].click()
+
                     currentSelectable++
                 }
+
                 highlight()
             })
 
@@ -1352,9 +1354,14 @@ function init()
 
         modifyNewPage = () =>
         {
-        } // eslint-disable-line
+        }
     }
 
+    /**
+     * @param ansController
+     * @param subController
+     * @param newPortalData
+     */
     function modifyEditPage(ansController, subController, newPortalData)
     {
         let editDiv = w.document.querySelector('div[ng-show="subCtrl.reviewType===\'EDIT\'"]')
@@ -1365,14 +1372,16 @@ function init()
         const bodyObserver = new MutationObserver(mutationList =>
         {
             for (let mutationRecord of mutationList) {
-                // we just want addednodes with (class:modal). null and undefined check for performance reasons
+                // we just want added nodes with (class:modal). null and undefined check for performance reasons
                 if (mutationRecord.addedNodes.length > 0 &&
                     mutationRecord.addedNodes[0].className === 'modal fade ng-isolate-scope' &&
-                    mutationRecord.addedNodes[0].querySelector('.modal-body a[href=\'/review\']') !== null) {
+                    mutationRecord.addedNodes[0].querySelector('.modal-body a[href=\'/review\']') !== null
+                ) {
                     w.document.location.href = '/review'
                 }
             }
         })
+
         bodyObserver.observe(w.document.body, { childList: true })
 
         let newSubmitDiv = w.document.querySelector('.answer-btn-container.bottom-btns')
@@ -1388,15 +1397,18 @@ function init()
         if (newPortalData.titleEdits.length > 1 || newPortalData.descriptionEdits.length > 1) {
             for (const titleEditBox of editDiv.querySelectorAll('.titleEditBox.ng-scope')) {
                 const contentSpan = titleEditBox.querySelector('.poi-edit-text')
-                let a = w.document.createElement('a')
+
                 let span = w.document.createElement('span')
                 span.className = 'glyphicon glyphicon-book'
                 span.innerHTML = ' '
+
+                let a = w.document.createElement('a')
                 a.appendChild(span)
                 a.className = 'translate-title button btn btn-default pull-right'
                 a.target = 'translate'
                 a.style.setProperty('padding', '0px 4px')
                 a.href = `https://translate.google.com/#auto/${browserLocale.split('-')[0]}/${encodeURIComponent(contentSpan.innerText.trim())}`
+
                 contentSpan.style.setProperty('display', 'inline-block')
                 contentSpan.insertAdjacentElement('beforeEnd', a)
             }
@@ -1404,33 +1416,40 @@ function init()
 
         if (newPortalData.titleEdits.length <= 1) {
             let titleDiv = editDiv.querySelector('div[ng-if="!answerCtrl.needsTitleEdit"]')
-            let a = w.document.createElement('a')
+
             let span = w.document.createElement('span')
             span.className = 'glyphicon glyphicon-book'
             span.innerHTML = ' '
+
+            let a = w.document.createElement('a')
             a.appendChild(span)
             a.className = 'translate-title btn btn-default'
             a.target = 'translate'
             a.style.setProperty('padding', '0px 4px')
             a.style.setProperty('margin-left', '14px')
             a.href = `https://translate.google.com/#auto/${browserLocale.split('-')[0]}/${encodeURIComponent(titleDiv.innerText.trim())}`
+
             titleDiv.insertAdjacentElement('beforeend', a)
         }
 
         if (newPortalData.descriptionEdits.length <= 1) {
             let titleDiv = editDiv.querySelector('div[ng-if="!answerCtrl.needsDescriptionEdit"]')
+
             const content = titleDiv.innerText.trim() || ''
+
             if (content !== '<No description>' && content !== '') {
-                let a = w.document.createElement('a')
                 let span = w.document.createElement('span')
                 span.className = 'glyphicon glyphicon-book'
                 span.innerHTML = ' '
+
+                let a = w.document.createElement('a')
                 a.appendChild(span)
                 a.className = 'translate-title btn btn-default'
                 a.target = 'translate'
                 a.style.setProperty('padding', '0px 4px')
                 a.style.setProperty('margin-left', '14px')
                 a.href = `https://translate.google.com/#auto/${browserLocale.split('-')[0]}/${encodeURIComponent(content)}`
+
                 titleDiv.insertAdjacentElement('beforeEnd', a)
             }
         }
@@ -1453,10 +1472,9 @@ function init()
         {
             let currentSelectable = 0
             let hasLocationEdit = (newPortalData.locationEdits.length > 1)
-            // counting *true*, please don't shoot me
-            let maxItems = (newPortalData.descriptionEdits.length > 1) + (newPortalData.titleEdits.length > 1) + (hasLocationEdit) + 2
-
+            let maxItems = (newPortalData.descriptionEdits.length > 1) + (newPortalData.titleEdits.length > 1) + (hasLocationEdit) + 2 // counting *true*, please don't shoot me
             let mapMarkers
+
             if (hasLocationEdit) {
                 mapMarkers = subController.allLocationMarkers
             } else {
@@ -1468,7 +1486,8 @@ function init()
                 '.edit-container  div[ng-show="subCtrl.pageData.titleEdits.length > 1"]:not(.ng-hide),' +
                 '.edit-container div[ng-show="subCtrl.pageData.descriptionEdits.length > 1"]:not(.ng-hide),' +
                 '.edit-container div[ng-show="subCtrl.pageData.locationEdits.length > 1"]:not(.ng-hide),' +
-                '#submitFF')
+                '#submitFF',
+            )
 
             /* EDIT PORTAL */
             function highlight()
@@ -1480,18 +1499,20 @@ function init()
                 {
                     element.style.setProperty('border', 'none')
                 })
+
                 if (hasLocationEdit && currentSelectable === maxItems - 3) {
                     el.style.setProperty('border-left', '4px dashed #ebbc4a')
                     el.style.setProperty('border-top', '4px dashed #ebbc4a')
                     el.style.setProperty('border-bottom', '4px dashed #ebbc4a')
                     el.style.setProperty('border-right', '4px dashed #ebbc4a')
                     el.style.setProperty('padding', '8px')
-                    // el.style.setProperty('margin-bottom', '0')
+
                     submitAndNext.blur()
                     submitButton.blur()
                 } else if (currentSelectable < maxItems - 2) {
                     starsAndSubmitButtons[currentSelectable].style.setProperty('border-left', '4px dashed #ebbc4a')
                     starsAndSubmitButtons[currentSelectable].style.setProperty('padding-left', '16px')
+
                     submitAndNext.blur()
                     submitButton.blur()
                 } else if (currentSelectable === maxItems - 2) {
@@ -1501,28 +1522,25 @@ function init()
                 }
             }
 
-            /* EDIT PORTAL */
+            /**
+             *  Keycodes:
+             *      8: Backspace
+             *      9: TAB
+             *      13: Enter
+             *      16: Shift
+             *      27: Escape
+             *      32: Space
+             *      49-53:  Keys 1-5
+             *      68: D
+             *      97-101: NUMPAD 1-5
+             *      107: NUMPAD +
+             *      109: NUMPAD -
+             *      111: NUMPAD /
+             */
             addEventListener('keydown', (event) =>
             {
-                /*
-                Keycodes:
-
-                8: Backspace
-                9: TAB
-                13: Enter
-                16: Shift
-                27: Escape
-                32: Space
-                68: D
-                107: NUMPAD +
-                109: NUMPAD -
-                111: NUMPAD /
-
-                49 - 53:  Keys 1-5
-                97 - 101: NUMPAD 1-5
-                 */
-
                 let numkey = null
+
                 if (event.keyCode >= 49 && event.keyCode <= 53) {
                     numkey = event.keyCode - 48
                 } else if (event.keyCode >= 97 && event.keyCode <= 101) {
@@ -1535,10 +1553,12 @@ function init()
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && w.document.querySelector('a.button[href="/review"]')) {
                     // "analyze next" button
                     w.document.location.href = '/review'
+
                     event.preventDefault()
                 } else if ((event.keyCode === 13 || event.keyCode === 32) && currentSelectable === maxItems) {
                     // submit normal rating
                     w.document.querySelector('[ng-click="answerCtrl.submitForm()"]').click()
+
                     event.preventDefault()
                 } else if (event.keyCode === 27 || event.keyCode === 111) {
                     // return to first selection (should this be a portal)
@@ -1546,10 +1566,12 @@ function init()
                 } else if ((event.keyCode === 107 || event.keyCode === 9) && currentSelectable < maxItems) {
                     // select next rating
                     currentSelectable++
+
                     event.preventDefault()
                 } else if ((event.keyCode === 109 || event.keyCode === 16 || event.keyCode === 8) && currentSelectable > 0) {
                     // select previous rating
                     currentSelectable--
+
                     event.preventDefault()
                 } else if (numkey === null || currentSelectable > maxItems - 2) {
                     return
@@ -1558,14 +1580,10 @@ function init()
                     if (hasLocationEdit && currentSelectable === maxItems - 3 && numkey <= mapMarkers.length) {
                         google.maps.event.trigger(angular.element(document.getElementById('NewSubmissionController')).scope().getAllLocationMarkers()[numkey - 1], 'click')
                     } else {
-                        if (hasLocationEdit) {
-                            numkey = 1
-                        }
-
-                        // starsAndSubmitButtons[currentSelectable].querySelectorAll('.poi-edit-box')[numkey - 1].click()
                         currentSelectable++
                     }
                 }
+
                 highlight()
             })
 
@@ -1573,65 +1591,42 @@ function init()
         }
     }
 
-    // add map buttons
+    /**
+     * Add external map buttons
+     *
+     * @param newPortalData
+     * @param targetElement
+     * @param where
+     */
     function mapButtons(newPortalData, targetElement, where)
     {
-        // coordinate format conversion
-        const coordUtm33 = proj4('+proj=longlat', '+proj=utm +zone=33', [newPortalData.lng, newPortalData.lat])
-        const coordUtm35 = proj4('+proj=longlat', '+proj=utm +zone=35', [newPortalData.lng, newPortalData.lat])
-        const coordPuwg92 = proj4('+proj=longlat', '+proj=tmerc +lat_0=0 +lon_0=19 +k=0.9993 +x_0=500000 +y_0=-5300000 +ellps=GRS80 +units=m +no_defs', [newPortalData.lng, newPortalData.lat])
-
-        const mapButtons = `
-<a class='btn btn-default' target='intel' href='https://intel.ingress.com/intel?ll=${newPortalData.lat},${newPortalData.lng}&z=17'>Intel</a>
-<a class='btn btn-default' target='gmaps' href='https://www.google.com/maps/place/${newPortalData.lat},${newPortalData.lng}'>GMaps</a>
-`
-        // more map buttons in a dropdown menu
-        const mapDropdown = `
-<li><a target='osm' href='https://www.openstreetmap.org/?mlat=${newPortalData.lat}&mlon=${newPortalData.lng}&zoom=16'>OSM</a></li>
-<li><a target='bing' href='https://bing.com/maps/default.aspx?cp=${newPortalData.lat}~${newPortalData.lng}&lvl=16&style=a'>bing</a></li>
-<li><a target='heremaps' href='https://wego.here.com/?map=${newPortalData.lat},${newPortalData.lng},17,satellite'>HERE maps</a></li>
-<li><a targeT='zoomearth' href='https://zoom.earth/#${newPortalData.lat},${newPortalData.lng},18z,sat'>Zoom Earth</a></li>
-<li role='separator' class='divider'></li>
-<li><a target='swissgeo' href='http://map.geo.admin.ch/?swisssearch=${newPortalData.lat},${newPortalData.lng}'>CH - Swiss Geo Map</a></li>
-<li><a target='mapycz' href='https://mapy.cz/zakladni?x=${newPortalData.lng}&y=${newPortalData.lat}&z=17&base=ophoto&source=coor&id=${newPortalData.lng}%2C${newPortalData.lat}&q=${newPortalData.lng}%20${newPortalData.lat}'>CZ-mapy.cz (ortofoto)</a></li>
-<li><a target='mapycz' href='https://mapy.cz/zakladni?x=${newPortalData.lng}&y=${newPortalData.lat}&z=17&base=ophoto&m3d=1&height=180&yaw=-279.39&pitch=-40.7&source=coor&id=${newPortalData.lng}%2C${newPortalData.lat}&q=${newPortalData.lng}%20${newPortalData.lat}'>CZ-mapy.cz (orto+3D)</a></li>
-<li><a target='kompass' href='http://maps.kompass.de/#lat=${newPortalData.lat}&lon=${newPortalData.lng}&z=17'>DE - Kompass.maps</a></li>
-<li><a target='bayernatlas' href='https://geoportal.bayern.de/bayernatlas/index.html?X=${newPortalData.lat}&Y=${newPortalData.lng}&zoom=14&lang=de&bgLayer=luftbild&topic=ba&catalogNodes=122'>DE - BayernAtlas</a></li>
-<li><a target='pegel' href='http://opr.pegel.dk/?17/${newPortalData.lat}/${newPortalData.lng}'>DK - SDFE Orthophotos</a></li>
-<li><a target='kortforsyningen' href='https://skraafoto.kortforsyningen.dk/oblivisionjsoff/index.aspx?project=Denmark&lon=${newPortalData.lng}&lat=${newPortalData.lat}'>DK - Kortforsyningen Skråfoto</a></li>
-<li><a target='maanmittauslaitos' href='https://asiointi.maanmittauslaitos.fi/karttapaikka/?lang=en&share=customMarker&n=${coordUtm35[1].toFixed(3)}&e=${coordUtm35[0].toFixed(3)}&title=${encodeURIComponent(newPortalData.title)}&desc=&zoom=11&layers=%5B%7B%22id%22%3A2%2C%22opacity%22%3A100%7D%5D'>FI - Maanmittauslaitos</a></li>
-<li><a target='paikkatietoikkuna' href='https://kartta.paikkatietoikkuna.fi/?zoomLevel=11&coord=${coordUtm35[0].toFixed(3)}_${coordUtm35[1].toFixed(3)}&mapLayers=801+100+default&uuid=90246d84-3958-fd8c-cb2c-2510cccca1d3&showMarker=true'>FI - Paikkatietoikkuna</a></li>
-<li><a target='kakao' href='http://map.kakao.com/?map_type=TYPE_SKYVIEW&map_hybrid=true&q=${newPortalData.lat}%2C${newPortalData.lng}'>KR - Kakao map</a></li>
-<li><a target='naver' href='http://map.naver.com/?menu=location&lat=${newPortalData.lat}&lng=${newPortalData.lng}&dLevel=14&title=CandidatePortalLocation'>KR - Naver map</a></li>
-<li><a target='kartverket' href='http://norgeskart.no/#!?project=seeiendom&layers=1002,1014&zoom=17&lat=${coordUtm33[1].toFixed(2)}&lon=${coordUtm33[0].toFixed(2)}&sok=${newPortalData.lat},${newPortalData.lng}'>NO - Kartverket</a></li>
-<li><a target='kulturminnesok' href='https://www.kulturminnesok.no/search?lat=${newPortalData.lat}&lng=${newPortalData.lng}'>NO - Kulturminnesøk</a></li>
-<li><a target='norgeibilder' href='https://norgeibilder.no/?x=${Math.round(coordUtm33[0])}&y=${Math.round(coordUtm33[1])}&level=16&utm=33'>NO - Norge i Bilder</a></li>
-<li><a target='finnno' href='http://kart.finn.no/?lng=${newPortalData.lng}&lat=${newPortalData.lat}&zoom=17&mapType=normap&markers=${newPortalData.lng},${newPortalData.lat},r,'>NO - Finn Kart</a></li>
-<li><a target='toposvalbard' href='http://toposvalbard.npolar.no/?lat=${newPortalData.lat}&long=${newPortalData.lng}&zoom=17&layer=map'>NO - Polarinstituttet, Svalbard</a></li>
-<li><a target='geoportal_pl' href='http://mapy.geoportal.gov.pl/imap/?actions=acShowWgButtonPanel_kraj_ORTO&bbox=${coordPuwg92[0] - 127},${coordPuwg92[1] - 63},${coordPuwg92[0] + 127},${coordPuwg92[1] + 63}'>PL - GeoPortal</a></li>
-<li><a target='yandex' href='https://yandex.ru/maps/?ll=${newPortalData.lng},${newPortalData.lat}&z=18&mode=whatshere&whatshere%5Bpoint%5D=${newPortalData.lng},${newPortalData.lat}&whatshere%5Bzoom%5D=18'>RU - Yandex</a></li>
-<li><a target='2GIS' href='https://2gis.ru/geo/${newPortalData.lng},${newPortalData.lat}?queryState=center/${newPortalData.lng},${newPortalData.lat}/zoom/13'>RU - 2GIS</a></li>
-<li><a target='lantmateriet' href='https://kso.etjanster.lantmateriet.se/?e=${Math.round(coordUtm33[0])}&n=${Math.round(coordUtm33[1])}&z=13'>SE - Läntmateriet</a></li>
-<li><a target='hitta' href='https://www.hitta.se/kartan!~${newPortalData.lat},${newPortalData.lng},18z/tileLayer!l=1'>SE - Hitta.se</a></li>
-<li><a target='eniro' href='https://kartor.eniro.se/?c=${newPortalData.lat},${newPortalData.lng}&z=17&l=nautical'>SE - Eniro Sjökort</a></li>
-`
-        targetElement.insertAdjacentHTML(where, `<div id="rot_wfr_map_button_group" class='btn-group dropup'>${mapButtons}<div class='btn btn-default dropdown'><span class='caret'></span><ul id="rot_wfr_map_dropdown" class='dropdown-content dropdown-menu'>${mapDropdown}</div></div>`)
+        targetElement.insertAdjacentHTML(where, `
+            <div id="rot_wfr_map_button_group" class='btn-group'>
+                <a class='btn btn-default' target='intel' href='https://intel.ingress.com/intel?ll=${newPortalData.lat},${newPortalData.lng}&z=17'>Intel</a>
+                <a class='btn btn-default' target='gmaps' href='https://www.google.com/maps/place/${newPortalData.lat},${newPortalData.lng}'>GMaps</a>
+            </div>
+        `)
     }
 
-    // add new button "Submit and reload", skipping "Your analysis has been recorded." dialog
+    /**
+     * Add new button "Submit and reload", skipping "Your analysis has been recorded." dialog
+     *
+     * @param submitDiv
+     * @param ansController
+     * @param bodyObserver
+     * @returns {{submitButton: Element | any, submitAndNext: Node}}
+     */
     function quickSubmitButton(submitDiv, ansController, bodyObserver)
     {
         let submitButton = submitDiv.querySelector('button.button-primary')
-        // submitButton.classList.add('btn', 'btn-warning')
-
         let submitAndNext = submitButton.cloneNode(false)
+        submitAndNext.innerHTML = `<span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;<span class="glyphicon glyphicon-forward"></span>`
+        submitAndNext.title = 'Submit and go to next review'
+        submitAndNext.id = 'submitFF'
         submitButton.addEventListener('click', () =>
         {
             bodyObserver.disconnect()
         })
-        submitAndNext.innerHTML = `<span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;<span class="glyphicon glyphicon-forward"></span>`
-        submitAndNext.title = 'Submit and go to next review'
-        submitAndNext.id = 'submitFF'
         submitAndNext.addEventListener('click', () =>
         {
             ansController.openSubmissionCompleteModal = () =>
@@ -1643,45 +1638,81 @@ function init()
         w.$injector.invoke(['$compile', ($compile) =>
         {
             let compiledSubmit = $compile(submitAndNext)(w.$scope(submitDiv))
+
             submitDiv.querySelector('#submitDiv button').insertAdjacentElement('beforeBegin', compiledSubmit[0])
         }])
+
         return { submitButton, submitAndNext }
     }
 
     function commentTemplates()
     {
-        // add text buttons
-        const textButtons = `
-<button id='photo' class='btn btn-default textButton' data-tooltip='Indicates a low quality photo'>Photo</button>
-<button id='private' class='btn btn-default textButton' data-tooltip='Located on private residential property'>Private</button>`
-        const textDropdown = `
-<li><a class='textButton' id='school' data-tooltip='Located on school property'>School</a></li>
-<li><a class='textButton' id='person' data-tooltip='Photo contains 1 or more people'>Person</a></li>
-<li><a class='textButton' id='perm' data-tooltip='Seasonal or temporary display or item'>Temporary</a></li>
-<li><a class='textButton' id='location' data-tooltip='Location wrong'>Location</a></li>
-<li><a class='textButton' id='natural' data-tooltip='Candidate is a natural feature'>Natural</a></li>
-<li><a class='textButton' id='emergencyway' data-tooltip='Obstructing emergency way'>Emergency Way</a></li>
-`
-
         const cardAdditionalText = w.document.getElementById('additional-comments-card')
         const cardTextBox = cardAdditionalText.querySelector('textarea')
 
-        cardAdditionalText.insertAdjacentHTML('beforeend', `<div class="card__footer">
-<span id="rot_wfr_comment_button_group" class='btn-group dropup pull-left'>${textButtons}
-<span class='btn btn-default dropdown'><span class='caret'></span><ul id="rot_wfr_comment_button_dropdown" class='dropdown-content dropdown-menu'>${textDropdown}</ul>
-</span></span><span class="hidden-xs pull-right"><button id='clear' class='btn btn-default textButton' data-tooltip='clears the comment box'>Clear</button></span></div>
-`)
+        cardAdditionalText.insertAdjacentHTML('beforeend', `
+            <div class="card__footer">
+                <span id="rot_wfr_comment_button_group" class='btn-group dropup pull-left'>
+                    <button id='photo' class='btn btn-default textButton' data-tooltip='Indicates a low quality photo'>Photo</button>
+                    <button id='private' class='btn btn-default textButton' data-tooltip='Located on private residential property'>Private</button>
+                    
+                    <span class='btn btn-default dropdown'>
+                        <span class='caret'></span>
+                        
+                        <ul id="rot_wfr_comment_button_dropdown" class='dropdown-content dropdown-menu'>
+                            <li>
+                                <a class='textButton' id='school' data-tooltip='Located on school property'>
+                                    School
+                                </a>
+                            </li>
+                            <li>
+                                <a class='textButton' id='person' data-tooltip='Photo contains 1 or more people'>
+                                    Person
+                                </a>
+                            </li>
+                            <li>
+                                <a class='textButton' id='perm' data-tooltip='Seasonal or temporary display or item'>
+                                    Temporary
+                                </a>
+                            </li>
+                            <li>
+                                <a class='textButton' id='location' data-tooltip='Location wrong'>
+                                    Location
+                                </a>
+                            </li>
+                            <li>
+                                <a class='textButton' id='natural' data-tooltip='Candidate is a natural feature'>
+                                    Natural
+                                </a>
+                            </li>
+                            <li>
+                                <a class='textButton' id='emergencyway' data-tooltip='Obstructing emergency way'>
+                                    Emergency Way
+                                </a>
+                            </li>
+                        </ul>
+                    </span>
+                </span>
+                
+                <span class="hidden-xs pull-right">
+                    <button id='clear' class='btn btn-default textButton' data-tooltip='clears the comment box'>Clear</button>
+                </span>
+            </div>
+        `)
 
         const buttons = w.document.getElementsByClassName('textButton')
+
         for (let b in buttons) {
             if (buttons.hasOwnProperty(b)) {
                 buttons[b].addEventListener('click', event =>
                 {
                     const source = event.target || event.srcElement
                     let text = cardTextBox.value
+
                     if (text.length > 0) {
                         text += ', '
                     }
+
                     switch (source.id) {
                         case 'photo':
                             text += 'Low quality photo'
@@ -1721,35 +1752,6 @@ function init()
                     event.target.blur()
                 }, false)
             }
-        }
-    }
-
-    // adding a 40m circle and a smaller 20m circle around the portal (capture range)
-    function mapOriginCircle(map)
-    {
-        // noinspection JSUnusedLocalSymbols
-        if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_40)) {
-            const circle40 = new google.maps.Circle({ // eslint-disable-line no-unused-vars
-                map: map,
-                center: map.center,
-                radius: 40,
-                strokeColor: '#ebbc4a',
-                strokeOpacity: 0.8,
-                strokeWeight: 1.5,
-                fillOpacity: 0,
-            })
-        }
-
-        if (preferences.get(ROT_WFR.OPTIONS.MAP_CIRCLE_20)) {
-            const circle20 = new google.maps.Circle({ // eslint-disable-line no-unused-vars
-                map: map,
-                center: map.center,
-                radius: 20,
-                strokeColor: '#eddc4a',
-                strokeOpacity: 0.8,
-                strokeWeight: 1.5,
-                fillOpacity: 0,
-            })
         }
     }
 
@@ -2153,117 +2155,74 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         }
     }
 
-    function addCustomPresetButtons()
-    {
-        // add customPreset UI
-        rotWfrCustomPresets = getCustomPresets(w)
-        let customPresetOptions = ''
-        for (const customPreset of rotWfrCustomPresets) {
-            customPresetOptions += `<button class='btn btn-default customPresetButton' id='${customPreset.uid}'>${customPreset.label}</button>`
-        }
-        w.document.getElementById('rot_wfr_custom_presets').innerHTML = customPresetOptions
-    }
-
-    function getCustomPresets(w)
-    {
-        // simply to scope the string we don't need after JSON.parse
-        let presetsJSON = w.localStorage.getItem(ROT_WFR.PREFIX + ROT_WFR.VAR.CUSTOM_PRESETS)
-        if (presetsJSON != null && presetsJSON !== '') {
-            return JSON.parse(presetsJSON)
-        }
-        return []
-    }
-
-    function saveCustomPreset(label, ansController, whatController)
-    {
-        // uid snippet from https://stackoverflow.com/a/47496558/6447397
-        let preset = {
-            uid: [...Array(5)].map(() => Math.random().toString(36)[3]).join(''),
-            label: label,
-            nodeName: whatController.whatNode.name,
-            nodeId: whatController.whatNode.id,
-            quality: ansController.formData.quality,
-            description: ansController.formData.description,
-            cultural: ansController.formData.cultural,
-            uniqueness: ansController.formData.uniqueness,
-            location: ansController.formData.location,
-            safety: ansController.formData.safety,
-        }
-        rotWfrCustomPresets.push(preset)
-        w.localStorage.setItem(ROT_WFR.PREFIX + ROT_WFR.VAR.CUSTOM_PRESETS, JSON.stringify(rotWfrCustomPresets))
-    }
-
-    function deleteCustomPreset(preset)
-    {
-        rotWfrCustomPresets = rotWfrCustomPresets.filter(item => item.uid !== preset.uid)
-        w.localStorage.setItem(ROT_WFR.PREFIX + ROT_WFR.VAR.CUSTOM_PRESETS, JSON.stringify(rotWfrCustomPresets))
-    }
-
     function showHelp()
     {
-        let helpString = `<a href='https://gitlab.com/1110101/opr-tools'><span class='label label-success'>Wayfarer-Tools</span></a> Key shortcuts<br>
-    <table class="table table-condensed ">
-    <thead>
-    <tr>
-      <th>Keys</th>
-      <th>Function</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-      <td><kbd>Keys 1-5</kbd> / <kbd>Numpad 1-5</kbd></td>
-      <td>Valuate current selected field (the yellow highlighted one)</td>
-    </tr>
-    <tr>
-      <td><kbd>Shift</kbd> + <kbd>Keys 1-5</kbd></td>
-      <td>Apply custom preset (if exists)</td>
-    </tr>
-    <tr>
-      <td><kbd>Keys 1-7</kbd> / <kbd>Numpad 1-7</kbd></td>
-      <td>Rejection popup: Select list element</td>
-    </tr>
-    <tr>
-      <td><kbd>D</kbd></td>
-      <td>Mark current candidate as a duplicate of the opened portal in "duplicates"</td>
-    </tr>
-    <tr>
-      <td><kbd>T</kbd></td>
-      <td>Open title translation</td>
-    </tr>
-    <tr>
-      <td><kbd>Y</kbd></td>
-      <td>Open description translation</td>
-    </tr>
-    <tr>
-      <td><kbd>U</kbd></td>
-      <td>Open supporting statement translation</td>
-    </tr>
-    <tr>
-      <td><kbd>Space</kbd> / <kbd>Enter</kbd> / <kbd>Numpad Enter</kbd></td>
-      <td>Confirm dialog / Send valuation</td>
-    </tr>
-    <tr>
-      <td><kbd>Tab</kbd> / <kbd>Numpad +</kbd></td>
-      <td>Next field</td>
-    </tr>
-    <tr>
-      <td><kbd>Shift</kbd> / <kbd>Backspace</kbd> / <kbd>Numpad -</kbd></td>
-      <td>Previous field</td>
-    </tr>
-    <tr>
-      <td><kbd>Esc</kbd> / <kbd>Numpad /</kbd></td>
-      <td>First field</td>
-    </tr>
-    <tr>
-      <td><kbd>^</kbd> / <kbd>Numpad *</kbd></td>
-      <td>Skip Portal (if possible)</td>
-    </tr>
-    </tbody>
-    </table>`
+        let helpString = `
+            <a href='https://gitlab.com/1110101/opr-tools'><span class='label label-success'>Wayfarer-Tools</span></a>
+            Key shortcuts<br>
+            <table class="table table-condensed ">
+                <thead>
+                    <tr>
+                        <th>Keys</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><kbd>Keys 1-5</kbd> / <kbd>Numpad 1-5</kbd></td>
+                        <td>Valuate current selected field (the yellow highlighted one)</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Shift</kbd> + <kbd>Keys 1-5</kbd></td>
+                        <td>Apply custom preset (if exists)</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Keys 1-7</kbd> / <kbd>Numpad 1-7</kbd></td>
+                        <td>Rejection popup: Select list element</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>D</kbd></td>
+                        <td>Mark current candidate as a duplicate of the opened portal in "duplicates"</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>T</kbd></td>
+                        <td>Open title translation</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Y</kbd></td>
+                        <td>Open description translation</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>U</kbd></td>
+                        <td>Open supporting statement translation</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Space</kbd> / <kbd>Enter</kbd> / <kbd>Numpad Enter</kbd></td>
+                        <td>Confirm dialog / Send valuation</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Tab</kbd> / <kbd>Numpad +</kbd></td>
+                        <td>Next field</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Shift</kbd> / <kbd>Backspace</kbd> / <kbd>Numpad -</kbd></td>
+                        <td>Previous field</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>Esc</kbd> / <kbd>Numpad /</kbd></td>
+                        <td>First field</td>
+                    </tr>
+                    <tr>
+                        <td><kbd>^</kbd> / <kbd>Numpad *</kbd></td>
+                        <td>Skip Portal (if possible)</td>
+                    </tr>
+                </tbody>
+            </table>`
 
         alertify.closeLogOnClick(false).logPosition('bottom right').delay(0).log(helpString, (ev) =>
         {
             ev.preventDefault()
+
             ev.target.closest('div.default.show').remove()
         }).reset()
     }
@@ -2297,7 +2256,7 @@ const strings = {
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
-    changelog: ``,
+    changelog: `Nothing changed tho... it's all a lie`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
