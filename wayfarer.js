@@ -42,9 +42,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const WFRT = {
-
     VERSION: 100000,
-
     PREFERENCES: 'wfrt_prefs',
 
     OPTIONS: {
@@ -63,11 +61,6 @@ const WFRT = {
 
     PREFIX: 'wfrt_',
     VAR_PREFIX: 'wfrt_var', // used in import/export **only**
-
-    // used for legacy oprt import
-    OPRT: 'oprt_',
-    OPRT_VAR_PREFIX: 'oprt_var',
-    OPRT_PREFERENCES: 'oprt_prefs',
 
     VAR: { // will be included in import/export
         SCANNER_OFFSET: 'scanner_offset',
@@ -676,14 +669,6 @@ class InOut
             }
             if (json.hasOwnProperty(WFRT.VAR_PREFIX)) {
                 InOut.importVars(json[WFRT.VAR_PREFIX])
-            }
-
-            // legacy import for oprt stuff
-            if (json.hasOwnProperty(WFRT.OPRT_PREFERENCES)) {
-                this.preferences.importPrefs(json[WFRT.OPRT_PREFERENCES])
-            }
-            if (json.hasOwnProperty(WFRT.OPRT_VAR_PREFIX)) {
-                InOut.importVars(json[WFRT.OPRT_VAR_PREFIX])
             }
         } catch (e) {
             throw new Error('Import failed')
