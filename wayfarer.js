@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.6
+// @version         0.1.7
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -42,7 +42,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100004,
+    VERSION: 100005,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -72,6 +72,21 @@ const ROT_WFR = {
 
     FROM_REFRESH: 'from_refresh', // sessionStorage
 }
+
+const strings = {
+    options: {
+        [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
+        [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
+        [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: 'Norwegian map layer',
+        [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
+        [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
+        [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
+        [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
+    },
+    changelog: `Nothing changed tho... it's all a lie`,
+}
+
+const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
 
 function addGlobalCss()
 {
@@ -1870,12 +1885,13 @@ function init()
     function modifyProfile()
     {
         // stats enhancements: add processed by nia, percent processed, progress to next recon badge numbers
+        let rotWfrScannerOffset = 0
 
-        let rot_wfrScannerOffset = 0
+        // get scanner offset from localStorage
         if (preferences.get(ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE)) {
-            // get scanner offset from localStorage
-            rot_wfrScannerOffset = parseInt(w.localStorage.getItem(ROT_WFR.SCANNER_OFFSET)) || 0
+            rotWfrScannerOffset = parseInt(w.localStorage.getItem(ROT_WFR.SCANNER_OFFSET)) || 0
         }
+
         const stats = w.document.querySelector('#profile-stats:not(.visible-xs)')
 
         const reviewed = parseInt(stats.children[0].children[0].children[1].innerText)
@@ -1883,7 +1899,7 @@ function init()
         const rejected = parseInt(stats.children[1].children[2].children[1].innerText)
         const duplicated = parseInt(stats.children[1].children[3].children[1].innerText)
 
-        const processed = accepted + rejected + duplicated - rot_wfrScannerOffset
+        const processed = accepted + rejected + duplicated - rotWfrScannerOffset
         const processedPercent = roundToPrecision(processed / reviewed * 100, 1)
 
         const acceptedPercent = roundToPrecision(accepted / (reviewed) * 100, 1)
@@ -1891,6 +1907,7 @@ function init()
         const duplicatedPercent = roundToPrecision(duplicated / (reviewed) * 100, 1)
 
         const reconBadge = { 100: 'Bronze', 750: 'Silver', 2500: 'Gold', 5000: 'Platin', 10000: 'Black' }
+
         let nextBadgeName, nextBadgeCount
 
         for (const key in reconBadge) {
@@ -1900,6 +1917,7 @@ function init()
                 break
             }
         }
+
         const nextBadgeProcess = processed / nextBadgeCount * 100
 
         const numberSpans = stats.querySelectorAll('span.stats-right')
@@ -1909,41 +1927,59 @@ function init()
         numberSpans[2].insertAdjacentHTML('beforeend', `, <span class=''>${rejectedPercent}%</span>`)
         numberSpans[3].insertAdjacentHTML('beforeend', `, <span class=''>${duplicatedPercent}%</span>`)
 
-        stats.querySelectorAll('h4')[2].insertAdjacentHTML('afterend', `<br>
-<h4><span class="stats-left">Processed <u>and</u> accepted analyses:</span> <span class="stats-right">${processed}, <span class="ingress-gray">${processedPercent}%</span></span></h4>`)
+        stats.querySelectorAll('h4')[2].insertAdjacentHTML('afterend', `
+            <br>
+            <h4>
+                <span class="stats-left">Processed <u>and</u> accepted analyses:</span> 
+                <span class="stats-right">${processed}, 
+                    <span class="ingress-gray">${processedPercent}%</span>
+                </span>
+            </h4>
+        `)
 
         if (processed < 10000) {
             stats.insertAdjacentHTML('beforeEnd', `
-<br><div>Next Ingress Recon badge tier: <b>${nextBadgeName} (${nextBadgeCount})</b><br>
-<div class='progress'>
-<div class='progress-bar progress-bar-warning'
-role='progressbar'
-aria-valuenow='${nextBadgeProcess}'
-aria-valuemin='0'
-aria-valuemax='100'
-style='width: ${Math.round(nextBadgeProcess)}%;'
-title='${nextBadgeCount - processed} to go'>
-${Math.round(nextBadgeProcess)}%
-</div></div></div>
-`)
+                <br>
+                <div>
+                    Next Ingress Recon badge tier: <b>${nextBadgeName} (${nextBadgeCount})</b>
+                    <br>
+                    <div class='progress'>
+                        <div class='progress-bar progress-bar-warning'
+                            role='progressbar'
+                            aria-valuenow='${nextBadgeProcess}'
+                            aria-valuemin='0'
+                            aria-valuemax='100'
+                            style='width: ${Math.round(nextBadgeProcess)}%;'
+                            title='${nextBadgeCount - processed} to go'>
+                            ${Math.round(nextBadgeProcess)}%
+                        </div>
+                    </div>
+                </div>
+            `)
         } else {
             stats.insertAdjacentHTML('beforeEnd', `<hr>`)
         }
-        stats.insertAdjacentHTML('beforeEnd', `<div><i class="glyphicon glyphicon-share"></i> <input readonly onFocus="this.select();" style="width: 90%;" type="text"
-value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (Created: ${accepted}/ Rejected: ${rejected}/ Duplicated: ${duplicated}) / ${Math.round(processedPercent)}%"/></div>`)
 
-        // ** wayfarer-scanner offset
+        stats.insertAdjacentHTML('beforeEnd', `
+            <div>
+                <i class="glyphicon glyphicon-share"></i> 
+                <input readonly onFocus="this.select();" style="width: 90%;" type="text" value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (Created: ${accepted}/ Rejected: ${rejected}/ Duplicated: ${duplicated}) / ${Math.round(processedPercent)}%"/>
+            </div>
+        `)
+
         if (accepted < 10000 && preferences.get(ROT_WFR.OPTIONS.SCANNER_OFFSET_UI)) {
             stats.insertAdjacentHTML('beforeEnd', `
-<div id='scannerOffsetContainer'>
-<span style="margin-left: 5px" class="ingress-mid-blue pull-left">Scanner offset:</span>
-<input id="scannerOffset" onFocus="this.select();" type="text" name="scannerOffset" size="8" class="pull-right" value="${rot_wfrScannerOffset}">
-</div>`)
+                <div id='scannerOffsetContainer'>
+                    <span style="margin-left: 5px" class="ingress-mid-blue pull-left">Scanner offset:</span>
+                    <input id="scannerOffset" onFocus="this.select();" type="text" name="scannerOffset" size="8" class="pull-right" value="${rotWfrScannerOffset}">
+                </div>
+            `)
 
             // we have to inject the tooltip to angular
             w.$injector.invoke(['$compile', ($compile) =>
             {
                 let compiledSubmit = $compile(`<span class="glyphicon glyphicon-info-sign ingress-gray pull-left" uib-tooltip-trigger="outsideclick" uib-tooltip-placement="left" tooltip-class="goldBorder" uib-tooltip="Use negative values, if scanner is ahead of Wayfarer"></span>`)(w.$scope(stats))
+
                 w.document.getElementById('scannerOffsetContainer').insertAdjacentElement('afterbegin', compiledSubmit[0])
             }]);
 
@@ -1954,12 +1990,12 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
                     w.localStorage.setItem(ROT_WFR.SCANNER_OFFSET, event.target.value)
                 })
             })
-            // **
         }
 
+        // noop after first run
         modifyProfile = () =>
         {
-        } // eslint-disable-line
+        }
     }
 
     function addOptionsButton()
@@ -1969,18 +2005,18 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             return
         }
 
-        // add wayfarer-tools preferences button
-        let rot_wfrPreferencesButton = w.document.createElement('a')
-        rot_wfrPreferencesButton.classList.add('brand', 'upgrades-icon', 'pull-right')
-        rot_wfrPreferencesButton.addEventListener('click', () => preferences.showPreferencesUI(w))
-        rot_wfrPreferencesButton.title = 'Wayfarer-Tools Preferences'
-        rot_wfrPreferencesButton.setAttribute('id', 'rot_wfr_preferences_button')
-
         const prefCog = w.document.createElement('span')
         prefCog.classList.add('glyphicon', 'glyphicon-cog')
-        rot_wfrPreferencesButton.appendChild(prefCog)
 
-        w.document.querySelector('.header .inner-container:last-of-type').insertAdjacentElement('afterbegin', rot_wfrPreferencesButton)
+        // add wayfarer-tools preferences button
+        let rotWfrPreferencesButton = w.document.createElement('a')
+        rotWfrPreferencesButton.classList.add('brand', 'upgrades-icon', 'pull-right')
+        rotWfrPreferencesButton.addEventListener('click', () => preferences.showPreferencesUI(w))
+        rotWfrPreferencesButton.title = 'Wayfarer-Tools Preferences'
+        rotWfrPreferencesButton.setAttribute('id', 'rot_wfr_preferences_button')
+        rotWfrPreferencesButton.appendChild(prefCog)
+
+        w.document.querySelector('.header .inner-container:last-of-type').insertAdjacentElement('afterbegin', rotWfrPreferencesButton)
     }
 
     function addRefreshContainer()
@@ -2010,8 +2046,14 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         })
 
         refreshPanel.innerHTML = `
-<div class='panel-heading'><span class='glyphicon glyphicon-refresh'></span> Refresh <sup>beta</sup> <a href='https://gitlab.com/1110101/opr-tools'><span class='label label-success pull-right'>Wayfarer-Tools</span></a></div>
-<div id='cbxDiv' class='panel-body bg-primary' style='background:black;'></div>`
+            <div class='panel-heading'>
+                <span class='glyphicon glyphicon-refresh'></span>
+                Refresh <sup>beta</sup>
+                <a href='https://gitlab.com/1110101/opr-tools'>
+                    <span class='label label-success pull-right'>Wayfarer-Tools</span>
+                </a>
+            </div>
+            <div id='cbxDiv' class='panel-body bg-primary' style='background:black;'></div>`
 
         refreshPanel.querySelector('#cbxDiv').insertAdjacentElement('afterbegin', appendCheckbox(cbxRefreshDesktop, 'Desktop notification'))
         refreshPanel.querySelector('#cbxDiv').insertAdjacentElement('afterbegin', appendCheckbox(cbxRefresh, 'Refresh every 5-10 minutes'))
@@ -2031,17 +2073,20 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         function appendCheckbox(checkbox, text)
         {
             let label = w.document.createElement('label')
-            let div = w.document.createElement('div')
-            div.className = 'checkbox'
             label.appendChild(checkbox)
             label.appendChild(w.document.createTextNode(text))
+
+            let div = w.document.createElement('div')
+            div.className = 'checkbox'
             div.appendChild(label)
+
             return div
         }
 
+        // noop after first run
         addRefreshContainer = () =>
         {
-        } // eslint-disable-line
+        }
     }
 
     let refreshIntervalID
@@ -2058,15 +2103,23 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         function reloadWayfarer()
         {
             clearInterval(refreshIntervalID)
+
             w.sessionStorage.setItem(ROT_WFR.FROM_REFRESH, 'true')
             w.document.location.reload()
         }
 
-        // source https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+        /**
+         * Source https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+         *
+         * @param min
+         * @param max
+         * @returns {number}
+         */
         function getRandomIntInclusive(min, max)
         {
             min = Math.ceil(min)
             max = Math.floor(max)
+
             return Math.floor(Math.random() * (max - min + 1)) + min
         }
     }
@@ -2096,6 +2149,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
                 let flashId = setInterval(() =>
                 {
                     flag = !flag
+
                     changeFavicon(`${flag ? POI_MARKER : '/imgpub/favicon.ico'}`)
                 }, 1000)
 
@@ -2104,6 +2158,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
                 {
                     if (!w.document.hidden) {
                         changeFavicon('/imgpub/favicon.ico')
+
                         clearInterval(flashId)
                     }
                 })
@@ -2111,12 +2166,19 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         }
     }
 
+    /**
+     * @param src
+     */
     function changeFavicon(src)
     {
         let link = w.document.querySelector('link[rel="shortcut icon"]')
+
         link.href = src
     }
 
+    /**
+     * @param subController
+     */
     function startExpirationTimer(subController)
     {
         w.document.querySelector('.header .inner-container:last-of-type').insertAdjacentHTML('afterbegin', '<span id="countdownDisplay"></span>')
@@ -2130,8 +2192,10 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         {
             // Get todays date and time
             let now = new Date().getTime()
+
             // Find the distance between now an the count down date
             let distance = countdownEnd - now
+
             // Time calculations for minutes and seconds
             let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
             let seconds = Math.floor((distance % (1000 * 60)) / 1000)
@@ -2142,6 +2206,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             if (distance < 0) {
                 // If the count down is finished, write some text
                 clearInterval(counterInterval)
+
                 countdownDisplay.innerText = 'EXPIRED'
                 countdownDisplay.style.setProperty('color', 'red')
             } else if (distance < 90000) {
@@ -2155,11 +2220,13 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         if (ROT_WFR.VERSION > (parseInt(w.localStorage.getItem(ROT_WFR.PREFIX + ROT_WFR.VERSION_CHECK)) || ROT_WFR.VERSION - 1)) {
             w.localStorage.setItem(ROT_WFR.PREFIX + ROT_WFR.VERSION_CHECK, ROT_WFR.VERSION)
 
-            const changelogString = `<h4>
+            const changelogString = `
+                <h4>
                     <span class="glyphicon glyphicon-asterisk"></span>
-                    Wayfarer-Tools was updated:
+                    Rothiss Wayfarer was updated:
                 </h4>
-                <div>${strings.changelog}</div>`
+                <div>${strings.changelog}</div>
+            `
 
             // show changelog
             alertify.closeLogOnClick(false).logPosition('bottom right').delay(0).log(changelogString, (ev) =>
@@ -2242,14 +2309,23 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
         }).reset()
     }
 
+    /**
+     * @param num
+     * @param precision
+     * @returns {number}
+     */
     function roundToPrecision(num, precision)
     {
         let shifter
+
         precision = Number(precision || 0)
+
         if (precision % 1 !== 0) {
             throw new RangeError('precision must be an integer')
         }
+
         shifter = Math.pow(10, precision)
+
         return Math.round(num * shifter) / shifter
     }
 }
@@ -2258,21 +2334,3 @@ setTimeout(() =>
 {
     init()
 }, 250)
-
-// region const
-
-const strings = {
-    options: {
-        [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: 'Comment templates',
-        [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
-        [ROT_WFR.OPTIONS.NORWAY_MAP_LAYER]: 'Norwegian map layer',
-        [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
-        [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
-        [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
-        [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
-    },
-    changelog: `Nothing changed tho... it's all a lie`,
-}
-
-const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
-// endregion
