@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         2.0.6-beta
+// @version         0.1.0
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -9,16 +9,12 @@
 // @grant           unsafeWindow
 // @grant           GM_notification
 // @grant           GM_addStyle
-// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
-// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
+// @downloadURL     https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/wayfarer.js
+// @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/master/wayfarer.js
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
-
 // ==/UserScript==
-
-// source https://gitlab.com/1110101/opr-tools
-// merge-requests welcome
 
 /*
 MIT License
@@ -47,7 +43,7 @@ SOFTWARE.
 
 const WFRT = {
 
-    VERSION: 20006,
+    VERSION: 100000,
 
     PREFERENCES: 'wfrt_prefs',
 
@@ -88,10 +84,199 @@ const WFRT = {
 function addGlobalStyle(css)
 {
     GM_addStyle(css)
+
     // noop after first run
     addGlobalStyle = () =>
     {
-    } // eslint-disable-line no-func-assign
+    }
+}
+
+function addDarkModeCss()
+{
+    // base CSS
+    var cssText = /*css*/ `
+	:root {
+		--happy-headers-color: #ecdcb5;
+		--darkened-background: #ccc;
+		--dark-background: #0f0f0f;
+		--sidebar-background: #252525;
+	}
+	// Font friendly to other countries (not just US :-/)
+	.text-input.text-input, body, h3, html {
+		font-family: Roboto,sans-serif;
+	}
+	// top header
+	.header {
+		background: var(--sidebar-background);
+	}
+	.niantic-wayfarer-logo > img {
+		filter: invert() hue-rotate(180deg) brightness(1.2) saturate(80%);
+	}
+	////
+	// main loader
+	.niantic-loader {
+		background: var(--dark-background);
+	}
+	.niantic-loader__logo {
+		filter: invert(0);
+	}
+	.niantic-loader__shadow {
+		filter: blur(4px);
+		background: #ccc;
+		animation: shadow-on-dark 2.2s ease-in-out infinite;
+	}
+	@keyframes shadow-on-dark {
+		from,
+		to {
+			opacity: .6;
+			filter: blur(6px)
+		}
+		55% {
+			opacity: .3;
+			filter: blur(4px)
+		}
+	}
+	
+	////
+	// Login screen
+	.login-button {
+		width: auto;
+		display: grid;
+		grid-template-columns: 45px 1fr;
+		align-items: center;
+		min-height: 40px;
+		height: auto;
+	}
+	  
+	.login-span-text {
+		position: static;
+		text-align: left;
+		transform: none;
+		width: 250px;
+	}
+	`
+
+    // some pages -- make just a bit darker
+    if (location.pathname.search(/^\/(help)$/) >= 0) {
+        cssText += /*css*/ `
+		// general darkness
+		body,#gallery-info {
+			background: var(--darkened-background);
+			color: black;
+		}
+		`
+        // more important pages -- make dark
+    } else {
+        cssText += /*css*/ `
+		// general darkness
+		body,#gallery-info,.known-information-need-edit,.container {
+			background: var(--dark-background);
+			color: whitesmoke;
+		}
+		
+		// cookies dialog
+		ark-cookiebar {
+			background: var(--darkened-background);
+			color: black;
+		}
+		
+		// most titles
+		h3 {
+			color: var(--happy-headers-color);
+		}
+		
+		// dialogs
+		.modal-dialog {
+			color: black;
+		}
+		
+		////
+		// profile
+		// nick
+		#chart-contain > h1 {
+			color: var(--happy-headers-color);
+		}
+		#profile-stats {
+			color: whitesmoke;
+		}
+		
+		////
+		// review cards
+		.card {
+			background: var(--darkened-background);
+			color: black;
+		}
+		.supporting-statement-central-field,
+		.supporting-central-field {
+			background: var(--darkened-background);
+		}
+		// review location change
+		.known-information-card {
+			overflow-y: auto;
+		}
+		.known-information-card .known-information-map-icon::before {
+			filter: invert();
+		}
+		  
+		////
+		// nominations list
+		#nom-table-title--arrow::before {
+			filter: invert() contrast(4);
+		}
+		#nom-options-button {
+			filter: invert();
+		}
+		.nomination.--selected {
+			background: #ddd;
+		}
+		
+		////
+		// settings
+		.item-edit {
+			filter: invert();
+		}
+		#SettingsController .settings-content .settings-item .item-header {
+			color: var(--happy-headers-color);
+		}
+		#SettingsController .settings-content .settings-item .item-text {
+			color: #ddd;
+		}
+		#SettingsController .settings-content .settings-item .item-value {
+			color: #A37CD9;
+		}
+		// bar for on/off switch
+		.switch-label::before {
+			//background-color: rgba(0,0,0,.17);
+			background-color: rgba(255,255,255,.5);
+		}
+		// edit forms
+		.breadcrumb {
+			background-color: inherit;
+		}
+		.dropdown #simple-dropdown {
+			background: whitesmoke;
+			color: black;
+		}
+		.text-input.text-input {
+			background: whitesmoke;
+			color: black;
+		}
+		// material checkbox
+		.consent-confirm {
+			filter: invert() contrast(90%);
+		}
+		.consent-confirm label {
+			filter: invert();
+		}
+		`
+    }
+
+    GM_addStyle(cssText.replace(/\/\/.+/g, ''))
+
+    // noop after first run
+    addDarkModeCss = () =>
+    {
+    }
 }
 
 class Preferences
@@ -387,6 +572,7 @@ function init()
     {
         // adding CSS
         addGlobalStyle(GLOBAL_CSS)
+        addDarkModeCss()
 
         addOptionsButton()
 
@@ -660,19 +846,6 @@ function init()
                 ${preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20) ? '<span style="color:#effc4a">inner circle:</span> 20m' : ''}
             </small>`)
         }
-
-        // // move portal rating to the right side. don't move on mobile devices / small width
-        // if (screen.availWidth > 768) {
-        //   let nodeToMove = w.document.querySelector('div[class="btn-group"]').parentElement
-        //   if (subController.hasSupportingImageOrStatement) {
-        //     const descDiv = w.document.getElementById('descriptionDiv')
-        //     const scorePanel = descDiv.querySelector('div.text-center.hidden-xs')
-        //     scorePanel.insertBefore(nodeToMove, scorePanel.firstChild)
-        //   } else {
-        //     const scorePanel = w.document.querySelector('div[class~="pull-right"]')
-        //     scorePanel.insertBefore(nodeToMove, scorePanel.firstChild)
-        //   }
-        // }
 
         // bind click-event to Dup-Images-Filmstrip. result: a click to the detail-image the large version is loaded in another tab
         const imgDups = w.document.querySelectorAll('#map-filmstrip > ul > li > img')
