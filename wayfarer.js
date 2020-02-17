@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.8
+// @version         0.1.9
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -479,13 +479,12 @@ class Preferences
         this.options = {}
         this.defaults = {
             [ROT_WFR.OPTIONS.KEYBOARD_NAV]: true,
-            [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
-            [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: false,
+            [ROT_WFR.OPTIONS.DARK_MODE]: true,
             [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: true,
             [ROT_WFR.OPTIONS.REFRESH]: true,
             [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: true,
-            [ROT_WFR.OPTIONS.MAP_CIRCLE_20]: false,
-            [ROT_WFR.OPTIONS.MAP_CIRCLE_40]: false,
+            [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
+            [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: false,
         }
 
         this.loadOptions()
@@ -498,10 +497,10 @@ class Preferences
     {
         let inout = new InOut(this)
         let pageContainer = w.document.querySelector('#content-container')
-        let rot_wfrPreferences = w.document.querySelector('#rot_wfr_sidepanel_container')
+        let rotWfrPreferences = w.document.querySelector('#rot_wfr_sidepanel_container')
 
-        if (rot_wfrPreferences !== null) {
-            rot_wfrPreferences.classList.toggle('hide')
+        if (rotWfrPreferences !== null) {
+            rotWfrPreferences.classList.toggle('hide')
         } else {
             pageContainer.insertAdjacentHTML('afterbegin', `
                 <section id="rot_wfr_sidepanel_container">
@@ -2309,7 +2308,7 @@ const strings = {
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
-    changelog: `Nothing changed tho... it's all a lie`,
+    changelog: `Is it dark?`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
