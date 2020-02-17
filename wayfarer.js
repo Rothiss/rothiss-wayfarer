@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.15
+// @version         0.1.16
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -13,6 +13,7 @@
 // @updateURL       https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/wayfarer.js
 // @supportURL      https://gitlab.com/Rothiss/rothiss-wayfarer/issues
 // @resource        rothissWayfarerCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer.css
+// @resource        rothissWayfarerDarkModeCSS https://gitlab.com/Rothiss/rothiss-wayfarer/raw/develop/rothiss-wayfarer-dark-mode.css
 // @require         https://cdnjs.cloudflare.com/ajax/libs/alertifyjs-alertify.js/1.0.11/js/alertify.js
 // @require         https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js
 // ==/UserScript==
@@ -43,7 +44,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100010,
+    VERSION: 100011,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -69,422 +70,6 @@ const ROT_WFR = {
     VERSION_CHECK: 'version_check', // outside var, because it should not get exported
 
     FROM_REFRESH: 'from_refresh', // sessionStorage
-}
-
-function addGlobalCss()
-{
-    // <editor-fold defaultstate="collapsed" desc="CSS Lines">
-    let css = `
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            z-index: 1;
-            margin: 0;
-        }
-        
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-        
-        .dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover {
-            background-color: unset;
-        }
-        
-        .dropdown .dropdown-menu {
-            left: 0px;
-            right: unset;
-            width: unset;
-        }
-        
-        .modal-sm {
-            width: 350px !important;
-        }
-        
-        .panel-ingress {
-            background-color: #004746;
-            border: 1px solid #0ff;
-            border-radius: 1px;
-            box-shadow: inset 0 0 6px rgba(255, 255, 255, 1);
-            color: #0ff;
-        }
-        
-        [data-tooltip] {
-            position: relative;
-            cursor: pointer;
-        }
-        
-        [data-tooltip]:before,
-        [data-tooltip]:after {
-            visibility: hidden;
-            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        [data-tooltip]:before {
-            position: absolute;
-            top: 150%;
-            left: 50%;
-            margin-bottom: 5px;
-            margin-left: -80px;
-            padding: 7px;
-            width: relative;
-            -webkit-border-radius: 3px;
-            -moz-border-radius: 3px;
-            border-radius: 3px;
-            background-color: #000;
-            background-color: hsla(0, 0%, 20%, 0.9);
-            color: #fff;
-            content: attr(data-tooltip);
-            text-align: center;
-            font-size: 14px;
-            line-height: 1.2;
-            z-index: 100;
-        }
-        
-        [data-tooltip]:after {
-            position: absolute;
-            top: 132%;
-            left: relative;
-            width: 0;
-            border-bottom: 5px solid #000;
-            border-bottom: 5px solid hsla(0, 0%, 20%, 0.9);
-            border-right: 5px solid transparent;
-            border-left: 5px solid transparent;
-            content: " ";
-            font-size: 0;
-            line-height: 0;
-        }
-        
-        [data-tooltip]:hover:before,
-        [data-tooltip]:hover:after {
-            visibility: visible;
-            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
-            opacity: 1;
-        }
-        
-        .titleEditBox:hover {
-            box-shadow: inset 0 0 20px #ebbc4a;
-        }
-        
-        .titleEditBox:active {
-            box-shadow: inset 0 0 15px 2px white;
-        }
-        
-        .group-list li label:hover, ul.sub-group-list a:hover, #root-label:hover {
-            box-shadow: inset 0 0 5px #000000 !important;
-        }
-        
-        .group-list li label:active, ul.sub-group-list a:active, #root-label:active {
-            box-shadow: inset 0 0 10px 2px #000000 !important;
-        }
-        
-        .modal-body .button:focus, .modal-body textarea:focus {
-            outline: 2px dashed #ebbc4a;
-        }
-        
-        .modal-body .button:hover, .gm-style-iw button.button:hover {
-            filter: brightness(150%);
-        }
-        
-        .alertify-logs {
-            z-index: 100;
-        }
-        
-        .alertify .dialog .msg {
-            color: black;
-        }
-        
-        .btn-xs {
-            margin-left: 8px;
-            padding: 0px 7px 1px !important;
-            box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
-            -webkit-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
-            -moz-box-shadow: inset 0 0 4px rgba(255, 255, 255, 1);
-        }
-        
-        kbd {
-            display: inline-block;
-            padding: 3px 5px;
-            font: 11px SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
-            line-height: 10px;
-            color: #444d56;
-            vertical-align: middle;
-            background-color: #fafbfc;
-            border: 1px solid #d1d5da;
-            border-bottom-color: #c6cbd1;
-            border-radius: 3px;
-            box-shadow: inset 0 -1px 0 #c6cbd1;
-        }
-        
-        .dropdown-menu {
-            margin: 0 !important;
-        }
-        
-        .opr-yellow {
-            color: #F3EADA;
-        }
-        
-        #submitAndSkipLowQuality, #submitAndSkipDuplicate {
-            margin-left: 32px;
-            margin-right: 32px;
-        }
-        
-        #scannerOffsetContainer {
-            margin-top: 16px;
-        }
-        
-        #rot_wfr_preferences_button {
-            cursor: pointer;
-            margin-right: 20px;
-            margin-left: 20px;
-            color: rgb(157,157,157);
-        }
-        
-        #rot_wfr_custom_presets_card {
-            width: 100%;
-            height: auto;
-            min-height: unset;
-            margin-left: 15px;
-        }
-        
-        #submitFF {
-            margin-right: 16px;
-        }
-        
-        @media (min-width: 768px) {
-            div.modal-custom1 {
-                width: 500px;
-                max-width: unset !important;
-            }
-        }
-        
-        .card-area .card-row-container {
-            max-width: unset !important;
-        }
-        
-        #rot_wfr_sidepanel_container {
-            background: black;
-            border-left: 2px gold inset;
-            border-top: 2px gold inset;
-            border-bottom: 2px gold inset;
-            color: white;
-            position: absolute;
-            right: 0;
-            height: 90%;
-            padding: 0 20px;
-            z-index: 10;
-            width: 400px;
-        }
-    `
-    // </editor-fold>
-
-    // GM_addStyle(css.replace(/\/\/.+/g, ''))
-
-    let newCSS = GM_getResourceText('rothissWayfarerCSS')
-
-    GM_addStyle(newCSS)
-
-    // noop after first run
-    addGlobalCss = () =>
-    {
-    }
-}
-
-function addDarkModeCss()
-{
-    // <editor-fold defaultstate="collapsed" desc="CSS Lines">
-    let css = `
-        :root {
-            --happy-headers-color: #ecdcb5;
-            --darkened-background: #ccc;
-            --dark-background: #0f0f0f;
-            --sidebar-background: #252525;
-        }
-
-        // Font friendly to other countries (not just US :-/)
-        .text-input.text-input, body, h3, html {
-            font-family: Roboto,sans-serif;
-        }
-
-        // top header
-        .header {
-            background: var(--sidebar-background);
-        }
-
-        .niantic-wayfarer-logo > img {
-            filter: invert() hue-rotate(180deg) brightness(1.2) saturate(80%);
-        }
-
-        // main loader
-        .niantic-loader {
-            background: var(--dark-background);
-        }
-
-        .niantic-loader__logo {
-            filter: invert(0);
-        }
-
-        .niantic-loader__shadow {
-            filter: blur(4px);
-            background: #ccc;
-            animation: shadow-on-dark 2.2s ease-in-out infinite;
-        }
-
-        @keyframes shadow-on-dark {
-            from,
-            to {
-                opacity: .6;
-                filter: blur(6px)
-            }
-            55% {
-                opacity: .3;
-                filter: blur(4px)
-            }
-        }
-
-        // Login screen
-        .login-button {
-            width: auto;
-            display: grid;
-            grid-template-columns: 45px 1fr;
-            align-items: center;
-            min-height: 40px;
-            height: auto;
-        }
-    
-        .login-span-text {
-            position: static;
-            text-align: left;
-            transform: none;
-            width: 250px;
-        }
-        
-		// general darkness
-		body,#gallery-info,.known-information-need-edit,.container {
-			background: var(--dark-background);
-			color: whitesmoke;
-		}
-
-		// cookies dialog
-		ark-cookiebar {
-			background: var(--darkened-background);
-			color: black;
-		}
-
-		// most titles
-		h3 {
-			color: var(--happy-headers-color);
-		}
-
-		// dialogs
-		.modal-dialog {
-			color: black;
-		}
-
-		// profile
-		#chart-contain > h1 {
-			color: var(--happy-headers-color);
-		}
-
-		#profile-stats {
-			color: whitesmoke;
-		}
-
-		// review cards
-		.card {
-			background: var(--darkened-background);
-			color: black;
-		}
-
-		.supporting-statement-central-field,
-		.supporting-central-field {
-			background: var(--darkened-background);
-		}
-
-		// review location change
-		.known-information-card {
-			overflow-y: auto;
-		}
-		.known-information-card .known-information-map-icon::before {
-			filter: invert();
-		}
-
-		// nominations list
-		#nom-table-title--arrow::before {
-			filter: invert() contrast(4);
-		}
-
-		#nom-options-button {
-			filter: invert();
-		}
-
-		.nomination.--selected {
-			background: #ddd;
-		}
-
-		// settings
-		.item-edit {
-			filter: invert();
-		}
-
-		#SettingsController .settings-content .settings-item .item-header {
-			color: var(--happy-headers-color);
-		}
-
-		#SettingsController .settings-content .settings-item .item-text {
-			color: #ddd;
-		}
-
-		#SettingsController .settings-content .settings-item .item-value {
-			color: #A37CD9;
-		}
-
-		// bar for on/off switch
-		.switch-label::before {
-			//background-color: rgba(0,0,0,.17);
-			background-color: rgba(255,255,255,.5);
-		}
-
-		// edit forms
-		.breadcrumb {
-			background-color: inherit;
-		}
-
-		.dropdown #simple-dropdown {
-			background: whitesmoke;
-			color: black;
-		}
-
-		.text-input.text-input {
-			background: whitesmoke;
-			color: black;
-		}
-
-		// material checkbox
-		.consent-confirm {
-			filter: invert() contrast(90%);
-		}
-
-		.consent-confirm label {
-			filter: invert();
-		}
-    `
-    // </editor-fold>
-
-    GM_addStyle(css.replace(/\/\/.+/g, ''))
-
-    // noop after first run
-    addDarkModeCss = () =>
-    {
-    }
 }
 
 class Preferences
@@ -859,6 +444,30 @@ function init()
             versionCheck()
         } else if (w.location.pathname.includes('profile')) {
             modifyProfile()
+        }
+    }
+
+    function addGlobalCss()
+    {
+        let customCSS = GM_getResourceText('rothissWayfarerCSS')
+
+        GM_addStyle(customCSS)
+
+        // noop after first run
+        addGlobalCss = () =>
+        {
+        }
+    }
+
+    function addDarkModeCss()
+    {
+        let darkModeCss = GM_getResourceText('rothissWayfarerDarkModeCSS')
+
+        GM_addStyle(darkModeCss)
+
+        // noop after first run
+        addDarkModeCss = () =>
+        {
         }
     }
 
@@ -2326,7 +1935,7 @@ const strings = {
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
         [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
-    changelog: `External CSS (ish)`,
+    changelog: `No more CSS in code, aaawh yeah`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
