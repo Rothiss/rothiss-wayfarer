@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.17
+// @version         0.1.18
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -44,7 +44,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100011,
+    VERSION: 100012,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -53,18 +53,14 @@ const ROT_WFR = {
         KEYBOARD_NAV: 'keyboard_nav',
         REFRESH: 'refresh',
         REFRESH_DESKTOP_NOTIFICATION: 'refresh_desktop_notifications',
-        SCANNER_OFFSET_FEATURE: 'scanner_offset_feature',
-        SCANNER_OFFSET_UI: 'scanner_offset_ui',
     },
 
     PREFIX: 'rot_wfr_',
     VAR_PREFIX: 'rot_wfr_var', // used in import/export **only**
 
     VAR: { // will be included in import/export
-        SCANNER_OFFSET: 'scanner_offset',
         MAP_TYPE_1: 'map_type_1',
         MAP_TYPE_2: 'map_type_2',
-        CUSTOM_PRESETS: 'custom_presets',
     },
 
     VERSION_CHECK: 'version_check', // outside var, because it should not get exported
@@ -83,8 +79,6 @@ class Preferences
             [ROT_WFR.OPTIONS.COMMENT_TEMPLATES]: true,
             [ROT_WFR.OPTIONS.REFRESH]: true,
             [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: true,
-            [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: false,
-            [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: false,
         }
 
         this.loadOptions()
@@ -442,8 +436,6 @@ function init()
             startExpirationTimer(subController)
 
             versionCheck()
-        } else if (w.location.pathname.includes('profile')) {
-            modifyProfile()
         }
     }
 
@@ -1476,122 +1468,6 @@ function init()
         }
     }
 
-    function modifyProfile()
-    {
-        // stats enhancements: add processed by nia, percent processed, progress to next recon badge numbers
-        let rotWfrScannerOffset = 0
-
-        // get scanner offset from localStorage
-        if (preferences.get(ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE)) {
-            rotWfrScannerOffset = parseInt(w.localStorage.getItem(ROT_WFR.SCANNER_OFFSET)) || 0
-        }
-
-        const stats = w.document.querySelector('#profile-stats:not(.visible-xs)')
-
-        const reviewed = parseInt(stats.children[0].children[0].children[1].innerText)
-        const accepted = parseInt(stats.children[1].children[1].children[1].innerText)
-        const rejected = parseInt(stats.children[1].children[2].children[1].innerText)
-        const duplicated = parseInt(stats.children[1].children[3].children[1].innerText)
-
-        const processed = accepted + rejected + duplicated - rotWfrScannerOffset
-        const processedPercent = roundToPrecision(processed / reviewed * 100, 1)
-
-        const acceptedPercent = roundToPrecision(accepted / (reviewed) * 100, 1)
-        const rejectedPercent = roundToPrecision(rejected / (reviewed) * 100, 1)
-        const duplicatedPercent = roundToPrecision(duplicated / (reviewed) * 100, 1)
-
-        const reconBadge = { 100: 'Bronze', 750: 'Silver', 2500: 'Gold', 5000: 'Platin', 10000: 'Black' }
-
-        let nextBadgeName, nextBadgeCount
-
-        for (const key in reconBadge) {
-            if (processed <= key) {
-                nextBadgeCount = key
-                nextBadgeName = reconBadge[key]
-                break
-            }
-        }
-
-        const nextBadgeProcess = processed / nextBadgeCount * 100
-
-        const numberSpans = stats.querySelectorAll('span.stats-right')
-
-        numberSpans[0].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>100%</div>`)
-        numberSpans[1].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>${acceptedPercent}%</div>`)
-        numberSpans[2].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>${rejectedPercent}%</div>`)
-        numberSpans[3].insertAdjacentHTML('beforeend', `, <div class='progress-percentage'>${duplicatedPercent}%</div>`)
-
-        stats.querySelectorAll('h4')[2].insertAdjacentHTML('afterend', `
-            <br>
-            <h4>
-                <span class="stats-left">Processed <u>and</u> accepted analyses:</span> 
-                <span class="stats-right">${processed}, 
-                    <span class="ingress-gray">${processedPercent}%</span>
-                </span>
-            </h4>
-        `)
-
-        if (processed < 10000) {
-            stats.insertAdjacentHTML('beforeEnd', `
-                <br>
-                <div>
-                    Next Ingress Recon badge tier: <strong>${nextBadgeName} (${nextBadgeCount})</strong>
-                    <br>
-                    <div class='progress'>
-                        <div class='progress-bar progress-bar-warning'
-                            role='progressbar'
-                            aria-valuenow='${nextBadgeProcess}'
-                            aria-valuemin='0'
-                            aria-valuemax='100'
-                            style='width: ${Math.round(nextBadgeProcess)}%;'
-                            title='${nextBadgeCount - processed} to go'>
-                            ${Math.round(nextBadgeProcess)}%
-                        </div>
-                    </div>
-                </div>
-            `)
-        } else {
-            stats.insertAdjacentHTML('beforeEnd', `<hr>`)
-        }
-
-        stats.insertAdjacentHTML('beforeEnd', `
-            <div>
-                <i class="glyphicon glyphicon-share"></i> 
-                <input readonly onFocus="this.select();" style="width: 90%;" type="text" value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (Created: ${accepted}/ Rejected: ${rejected}/ Duplicated: ${duplicated}) / ${Math.round(processedPercent)}%"/>
-            </div>
-        `)
-
-        if (accepted < 10000 && preferences.get(ROT_WFR.OPTIONS.SCANNER_OFFSET_UI)) {
-            stats.insertAdjacentHTML('beforeEnd', `
-                <div id='scannerOffsetContainer'>
-                    <span style="margin-left: 5px" class="ingress-mid-blue pull-left">Scanner offset:</span>
-                    <input id="scannerOffset" onFocus="this.select();" type="text" name="scannerOffset" size="8" class="pull-right" value="${rotWfrScannerOffset}">
-                </div>
-            `)
-
-            // we have to inject the tooltip to angular
-            w.$injector.invoke(['$compile', ($compile) =>
-            {
-                let compiledSubmit = $compile(`<span class="glyphicon glyphicon-info-sign ingress-gray pull-left" uib-tooltip-trigger="outsideclick" uib-tooltip-placement="left" tooltip-class="goldBorder" uib-tooltip="Use negative values, if scanner is ahead of Wayfarer"></span>`)(w.$scope(stats))
-
-                w.document.getElementById('scannerOffsetContainer').insertAdjacentElement('afterbegin', compiledSubmit[0])
-            }]);
-
-            ['change', 'keyup', 'cut', 'paste', 'input'].forEach(e =>
-            {
-                w.document.getElementById('scannerOffset').addEventListener(e, (event) =>
-                {
-                    w.localStorage.setItem(ROT_WFR.SCANNER_OFFSET, event.target.value)
-                })
-            })
-        }
-
-        // noop after first run
-        modifyProfile = () =>
-        {
-        }
-    }
-
     function addOptionsButton()
     {
         // Add preferences button only once
@@ -1898,26 +1774,6 @@ function init()
             ev.target.closest('div.default.show').remove()
         }).reset()
     }
-
-    /**
-     * @param num
-     * @param precision
-     * @returns {number}
-     */
-    function roundToPrecision(num, precision)
-    {
-        let shifter
-
-        precision = Number(precision || 0)
-
-        if (precision % 1 !== 0) {
-            throw new RangeError('precision must be an integer')
-        }
-
-        shifter = Math.pow(10, precision)
-
-        return Math.round(num * shifter) / shifter
-    }
 }
 
 setTimeout(() =>
@@ -1932,10 +1788,8 @@ const strings = {
         [ROT_WFR.OPTIONS.KEYBOARD_NAV]: 'Keyboard navigation',
         [ROT_WFR.OPTIONS.REFRESH]: 'Periodically refresh wayfarer if no analysis is available',
         [ROT_WFR.OPTIONS.REFRESH_DESKTOP_NOTIFICATION]: '↳ With desktop notification',
-        [ROT_WFR.OPTIONS.SCANNER_OFFSET_FEATURE]: 'Scanner offset',
-        [ROT_WFR.OPTIONS.SCANNER_OFFSET_UI]: '↳ Display offset input field',
     },
-    changelog: `No more CSS in code, aaawh yeah`,
+    changelog: `No more profile changing`,
 }
 
 const POI_MARKER = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAYdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuOWwzfk4AAADlSURBVDhPY/j//z8CTw3U/V8lcvx/MfPX/2Xcd//XyWwDYxAbJAaS63c2Q9aD0NygUPS/hPXt/3bD5f93LI7DwFvnJILlSlg//K+XrUc1AKS5jOvx/wU55Vg1I2OQmlKOpzBDIM4G2UyMZhgGqQW5BOgdBrC/cDkbHwbpAeplAAcONgWEMChMgHoZwCGMTQExGKiXARxN2CSJwUC9VDCAYi9QHIhVQicpi0ZQ2gYlCrITEigpg5IlqUm5VrILkRdghoBMxeUd5MwE1YxqAAiDvAMKE1DAgmIHFMUgDGKDxDCy838GAPWFoAEBs2EvAAAAAElFTkSuQmCC`
