@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.1
+// @version         0.1.2
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -43,7 +43,7 @@ SOFTWARE.
 
 const WFRT = {
     VERSION: 100000,
-    PREFERENCES: 'wfrt_prefs',
+    PREFERENCES: 'wfr_prefs',
 
     OPTIONS: {
         KEYBOARD_NAV: 'keyboard_nav',
@@ -59,8 +59,8 @@ const WFRT = {
         REFRESH_NOTI_DESKTOP: 'refresh_noti_desktop',
     },
 
-    PREFIX: 'wfrt_',
-    VAR_PREFIX: 'wfrt_var', // used in import/export **only**
+    PREFIX: 'rot_wfr_',
+    VAR_PREFIX: 'rot_wfr_var', // used in import/export **only**
 
     VAR: { // will be included in import/export
         SCANNER_OFFSET: 'scanner_offset',
@@ -252,14 +252,14 @@ function addGlobalStyle()
             margin-top: 16px;
         }
         
-        #wfrt_preferences_button {
+        #rot_wfr_preferences_button {
             cursor: pointer;
             margin-right: 20px;
             margin-left: 20px;
             color: rgb(157,157,157);
         }
         
-        #wfrt_custom_presets_card {
+        #rot_wfr_custom_presets_card {
             width: 100%;
             height: auto;
             min-height: unset;
@@ -279,6 +279,20 @@ function addGlobalStyle()
         
         .card-area .card-row-container {
             max-width: unset !important;
+        }
+        
+        .rot_wfr_sidepanel_container {
+            background: black;
+            border-left: 2px gold inset;
+            border-top: 2px gold inset;
+            border-bottom: 2px gold inset;
+            color: white;
+            position: absolute;
+            right: 0;
+            height: 90%;
+            padding: 0 20px;
+            z-index: 10;
+            width: 400px;
         }
     `
     // </editor-fold>
@@ -490,45 +504,36 @@ class Preferences
     {
         let inout = new InOut(this)
         let pageContainer = w.document.querySelector('#content-container')
-        let wfrtPreferences = w.document.querySelector('#wfrt_sidepanel_container')
+        let rot_wfrPreferences = w.document.querySelector('#rot_wfr_sidepanel_container')
 
-        if (wfrtPreferences !== null) {
-            wfrtPreferences.classList.toggle('hide')
+        if (rot_wfrPreferences !== null) {
+            rot_wfrPreferences.classList.toggle('hide')
         } else {
             pageContainer.insertAdjacentHTML('afterbegin', `
-<section id="wfrt_sidepanel_container" style="
-    background: black;
-    border-left: 2px gold inset;
-    border-top: 2px gold inset;
-    border-bottom: 2px gold inset;
-    color: white;
-    position: absolute;
-    right: 0;
-    height: 90%;
-    padding: 0 20px;
-    z-index: 10;
-    width: 400px;
-    ">
-  <div class="row">
-    <div class="col-lg-12">
-      <h4 class="gold">Wayfarer-Tools Preferences</h4>
+<section id="rot_wfr_sidepanel_container">
+    <div class="row">
+        <div class="col-lg-12">
+            <h4 class="gold">Rothiss Wayfarer Preferences</h4>
+        </div>
+        
+        <div class="col-lg-12">
+            <div class="btn-group" role="group">
+                <button id="import_all" class="btn btn-success">Import</button>
+                <button id="export_all" class="btn btn-success">Export</button>
+            </div>
+        </div>
     </div>
-    <div class="col-lg-12">
-      <div class="btn-group" role="group">
-        <button id="import_all" class="btn btn-success">Import</button>
-        <button id="export_all" class="btn btn-success">Export</button>
-      </div>
-    </div>
-  </div>
-  <div id="wfrt_options"></div>
-  <a id="wfrt_reload" class="btn btn-warning hide"><span class="glyphicon glyphicon-refresh"></span>
- Reload to apply changes</a>
-
- <div style="position: absolute; bottom: 0; left: 0; margin:20px;"><a href="https://t.me/oprtools">${TG_SVG} Wayfarer-Tools Telegram Channel</a></div>
+    
+    <div id="rot_wfr_options"></div>
+    
+    <a id="rot_wfr_reload" class="btn btn-warning hide">
+        <span class="glyphicon glyphicon-refresh"></span>
+        Reload to apply changes
+    </a>
 </section>`)
 
-            let optionsContainer = w.document.getElementById('wfrt_options')
-            let reloadButton = w.document.getElementById('wfrt_reload')
+            let optionsContainer = w.document.getElementById('rot_wfr_options')
+            let reloadButton = w.document.getElementById('rot_wfr_reload')
 
             for (let item in this.options) {
                 // remove unknown or removed options
@@ -686,7 +691,7 @@ function init()
     const w = typeof unsafeWindow === 'undefined' ? window : unsafeWindow
     let tryNumber = 15
 
-    let wfrtCustomPresets
+    let rot_wfrCustomPresets
 
     let browserLocale = window.navigator.languages[0] || window.navigator.language || 'en'
 
@@ -697,7 +702,7 @@ function init()
         if (tryNumber === 0) {
             clearInterval(initWatcher)
             w.document.getElementById('NewSubmissionController').insertAdjacentHTML('afterBegin', `
-<div id="wfrt_init_failed" class='alert alert-danger'><strong><span class='glyphicon glyphicon-remove'></span> Wayfarer-Tools initialization failed, refresh page</strong></div>
+<div id="rot_wfr_init_failed" class='alert alert-danger'><strong><span class='glyphicon glyphicon-remove'></span> Wayfarer-Tools initialization failed, refresh page</strong></div>
 `)
             addRefreshContainer()
             return
@@ -846,8 +851,8 @@ function init()
 
         /* region presets start */
         if (preferences.get(WFRT.OPTIONS.PRESET_FEATURE)) {
-            const customPresetUI = `<div class="card" id="wfrt_custom_presets_card"><div class="card__body"><div>Presets&nbsp;<button class="btn btn-default btn-xs" id="addPreset">+</button></div>
-  <div class='btn-group' id="wfrt_custom_presets"></div></div></div>
+            const customPresetUI = `<div class="card" id="rot_wfr_custom_presets_card"><div class="card__body"><div>Presets&nbsp;<button class="btn btn-default btn-xs" id="addPreset">+</button></div>
+  <div class='btn-group' id="rot_wfr_custom_presets"></div></div></div>
 `
 
             w.document.querySelector('.card-row-container').insertAdjacentHTML('afterbegin', customPresetUI)
@@ -889,7 +894,7 @@ function init()
                     return
                 }
 
-                let preset = wfrtCustomPresets.find(item => item.uid === value)
+                let preset = rot_wfrCustomPresets.find(item => item.uid === value)
 
                 if (event.shiftKey) {
                     alertify.log(`Deleted preset <i>${preset.label}</i>`)
@@ -926,7 +931,7 @@ function init()
                 alertify.success(`✔ Applied <i>${preset.label}</i>`)
             }
 
-            w.document.getElementById('wfrt_custom_presets').addEventListener('click', clickListener, false)
+            w.document.getElementById('rot_wfr_custom_presets').addEventListener('click', clickListener, false)
         }
         /* endregion presets end */
 
@@ -1020,7 +1025,7 @@ function init()
 
         if (preferences.get(WFRT.OPTIONS.MAP_CIRCLE_40) || preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20)) {
             document.querySelector('.flex-map-row').insertAdjacentHTML('beforeEnd',
-                `<small id="wfrt_map_legend">
+                `<small id="rot_wfr_map_legend">
                 ${preferences.get(WFRT.OPTIONS.MAP_CIRCLE_40) ? '<span style="color:#ebbc4a">outer circle:</span> 40m' : ''}
                 ${preferences.get(WFRT.OPTIONS.MAP_CIRCLE_20) ? '<span style="color:#effc4a">inner circle:</span> 20m' : ''}
             </small>`)
@@ -1063,7 +1068,7 @@ function init()
         a.target = 'translate'
         a.style.setProperty('padding', '0px 4px')
         a.href = `https://translate.google.com/#auto/${lang}/${encodeURIComponent(content)}`
-        a.id = 'wfrt_translate_title'
+        a.id = 'rot_wfr_translate_title'
         titleContainer.insertAdjacentElement('beforeend', a)
 
         const descContainer = w.document.querySelector('h4.title-description')
@@ -1077,7 +1082,7 @@ function init()
             a.target = 'translate'
             a.style.setProperty('padding', '0px 4px')
             a.href = `https://translate.google.com/#auto/${lang}/${encodeURIComponent(descContainer.innerText.trim())}`
-            a.id = 'wfrt_translate_desc'
+            a.id = 'rot_wfr_translate_desc'
             descContainer.insertAdjacentElement('beforeend', a)
             descContainer.insertAdjacentHTML('beforebegin', '<hr>')
         }
@@ -1093,7 +1098,7 @@ function init()
             a.target = 'translate'
             a.style.setProperty('padding', '0px 4px')
             a.href = `https://translate.google.com/#auto/${lang}/${encodeURIComponent(supportingStatement.innerText)}`
-            a.id = 'wfrt_translate_support'
+            a.id = 'rot_wfr_translate_support'
             supportingStatement.insertAdjacentElement('beforebegin', a)
         }
 
@@ -1254,21 +1259,21 @@ function init()
                     event.preventDefault()
                 } else if (event.keyCode === 84) {
                     // click on translate title link (key T)
-                    const link = w.document.querySelector('#wfrt_translate_title')
+                    const link = w.document.querySelector('#rot_wfr_translate_title')
                     if (link) {
                         link.click()
                         event.preventDefault()
                     }
                 } else if (event.keyCode === 89) {
                     // click on translate description link (key Y)
-                    const link = w.document.querySelector('#wfrt_translate_desc')
+                    const link = w.document.querySelector('#rot_wfr_translate_desc')
                     if (link) {
                         link.click()
                         event.preventDefault()
                     }
                 } else if (event.keyCode === 85) {
                     // click on translate extra info link (key U)
-                    const link = w.document.querySelector('#wfrt_translate_support')
+                    const link = w.document.querySelector('#rot_wfr_translate_support')
                     if (link) {
                         link.click()
                         event.preventDefault()
@@ -1627,7 +1632,7 @@ function init()
 <li><a target='hitta' href='https://www.hitta.se/kartan!~${newPortalData.lat},${newPortalData.lng},18z/tileLayer!l=1'>SE - Hitta.se</a></li>
 <li><a target='eniro' href='https://kartor.eniro.se/?c=${newPortalData.lat},${newPortalData.lng}&z=17&l=nautical'>SE - Eniro Sjökort</a></li>
 `
-        targetElement.insertAdjacentHTML(where, `<div id="wfrt_map_button_group" class='btn-group dropup'>${mapButtons}<div class='btn btn-default dropdown'><span class='caret'></span><ul id="wfrt_map_dropdown" class='dropdown-content dropdown-menu'>${mapDropdown}</div></div>`)
+        targetElement.insertAdjacentHTML(where, `<div id="rot_wfr_map_button_group" class='btn-group dropup'>${mapButtons}<div class='btn btn-default dropdown'><span class='caret'></span><ul id="rot_wfr_map_dropdown" class='dropdown-content dropdown-menu'>${mapDropdown}</div></div>`)
     }
 
     // add new button "Submit and reload", skipping "Your analysis has been recorded." dialog
@@ -1679,8 +1684,8 @@ function init()
         const cardTextBox = cardAdditionalText.querySelector('textarea')
 
         cardAdditionalText.insertAdjacentHTML('beforeend', `<div class="card__footer">
-<span id="wfrt_comment_button_group" class='btn-group dropup pull-left'>${textButtons}
-<span class='btn btn-default dropdown'><span class='caret'></span><ul id="wfrt_comment_button_dropdown" class='dropdown-content dropdown-menu'>${textDropdown}</ul>
+<span id="rot_wfr_comment_button_group" class='btn-group dropup pull-left'>${textButtons}
+<span class='btn btn-default dropdown'><span class='caret'></span><ul id="rot_wfr_comment_button_dropdown" class='dropdown-content dropdown-menu'>${textDropdown}</ul>
 </span></span><span class="hidden-xs pull-right"><button id='clear' class='btn btn-default textButton' data-tooltip='clears the comment box'>Clear</button></span></div>
 `)
 
@@ -1887,10 +1892,10 @@ function init()
     {
         // stats enhancements: add processed by nia, percent processed, progress to next recon badge numbers
 
-        let wfrtScannerOffset = 0
+        let rot_wfrScannerOffset = 0
         if (preferences.get(WFRT.OPTIONS.SCANNER_OFFSET_FEATURE)) {
             // get scanner offset from localStorage
-            wfrtScannerOffset = parseInt(w.localStorage.getItem(WFRT.SCANNER_OFFSET)) || 0
+            rot_wfrScannerOffset = parseInt(w.localStorage.getItem(WFRT.SCANNER_OFFSET)) || 0
         }
         const stats = w.document.querySelector('#profile-stats:not(.visible-xs)')
 
@@ -1899,7 +1904,7 @@ function init()
         const rejected = parseInt(stats.children[1].children[2].children[1].innerText)
         const duplicated = parseInt(stats.children[1].children[3].children[1].innerText)
 
-        const processed = accepted + rejected + duplicated - wfrtScannerOffset
+        const processed = accepted + rejected + duplicated - rot_wfrScannerOffset
         const processedPercent = roundToPrecision(processed / reviewed * 100, 1)
 
         const acceptedPercent = roundToPrecision(accepted / (reviewed) * 100, 1)
@@ -1953,7 +1958,7 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             stats.insertAdjacentHTML('beforeEnd', `
 <div id='scannerOffsetContainer'>
 <span style="margin-left: 5px" class="ingress-mid-blue pull-left">Scanner offset:</span>
-<input id="scannerOffset" onFocus="this.select();" type="text" name="scannerOffset" size="8" class="pull-right" value="${wfrtScannerOffset}">
+<input id="scannerOffset" onFocus="this.select();" type="text" name="scannerOffset" size="8" class="pull-right" value="${rot_wfrScannerOffset}">
 </div>`)
 
             // we have to inject the tooltip to angular
@@ -1981,22 +1986,22 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
     function addOptionsButton()
     {
         // Add preferences button only once
-        if (w.document.getElementById('wfrt_preferences_button') !== null) {
+        if (w.document.getElementById('rot_wfr_preferences_button') !== null) {
             return
         }
 
         // add wayfarer-tools preferences button
-        let wfrtPreferencesButton = w.document.createElement('a')
-        wfrtPreferencesButton.classList.add('brand', 'upgrades-icon', 'pull-right')
-        wfrtPreferencesButton.addEventListener('click', () => preferences.showPreferencesUI(w))
-        wfrtPreferencesButton.title = 'Wayfarer-Tools Preferences'
-        wfrtPreferencesButton.setAttribute('id', 'wfrt_preferences_button')
+        let rot_wfrPreferencesButton = w.document.createElement('a')
+        rot_wfrPreferencesButton.classList.add('brand', 'upgrades-icon', 'pull-right')
+        rot_wfrPreferencesButton.addEventListener('click', () => preferences.showPreferencesUI(w))
+        rot_wfrPreferencesButton.title = 'Wayfarer-Tools Preferences'
+        rot_wfrPreferencesButton.setAttribute('id', 'rot_wfr_preferences_button')
 
         const prefCog = w.document.createElement('span')
         prefCog.classList.add('glyphicon', 'glyphicon-cog')
-        wfrtPreferencesButton.appendChild(prefCog)
+        rot_wfrPreferencesButton.appendChild(prefCog)
 
-        w.document.querySelector('.header .inner-container:last-of-type').insertAdjacentElement('afterbegin', wfrtPreferencesButton)
+        w.document.querySelector('.header .inner-container:last-of-type').insertAdjacentElement('afterbegin', rot_wfrPreferencesButton)
     }
 
     function addRefreshContainer()
@@ -2189,12 +2194,12 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
     function addCustomPresetButtons()
     {
         // add customPreset UI
-        wfrtCustomPresets = getCustomPresets(w)
+        rot_wfrCustomPresets = getCustomPresets(w)
         let customPresetOptions = ''
-        for (const customPreset of wfrtCustomPresets) {
+        for (const customPreset of rot_wfrCustomPresets) {
             customPresetOptions += `<button class='btn btn-default customPresetButton' id='${customPreset.uid}'>${customPreset.label}</button>`
         }
-        w.document.getElementById('wfrt_custom_presets').innerHTML = customPresetOptions
+        w.document.getElementById('rot_wfr_custom_presets').innerHTML = customPresetOptions
     }
 
     function getCustomPresets(w)
@@ -2222,14 +2227,14 @@ value="Reviewed: ${reviewed} / Processed: ${accepted + rejected + duplicated} (C
             location: ansController.formData.location,
             safety: ansController.formData.safety,
         }
-        wfrtCustomPresets.push(preset)
-        w.localStorage.setItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS, JSON.stringify(wfrtCustomPresets))
+        rot_wfrCustomPresets.push(preset)
+        w.localStorage.setItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS, JSON.stringify(rot_wfrCustomPresets))
     }
 
     function deleteCustomPreset(preset)
     {
-        wfrtCustomPresets = wfrtCustomPresets.filter(item => item.uid !== preset.uid)
-        w.localStorage.setItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS, JSON.stringify(wfrtCustomPresets))
+        rot_wfrCustomPresets = rot_wfrCustomPresets.filter(item => item.uid !== preset.uid)
+        w.localStorage.setItem(WFRT.PREFIX + WFRT.VAR.CUSTOM_PRESETS, JSON.stringify(rot_wfrCustomPresets))
     }
 
     function showHelp()
