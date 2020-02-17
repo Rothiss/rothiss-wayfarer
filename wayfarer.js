@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name            Rothiss - Wayfarer (tools)
-// @version         0.1.9
+// @version         0.1.10
 // @description     Custom helper script for Niantic Wayfarer
 // @homepageURL     https://gitlab.com/Rothiss/rothiss-wayfarer
 // @author          Rothiss, https://gitlab.com/Rothiss/rothiss-wayfarer/graphs/master
@@ -42,7 +42,7 @@ SOFTWARE.
 /* globals screen, MutationObserver, addEventListener, localStorage, MutationObserver, GM_addStyle, GM_notification, unsafeWindow, angular, google, alertify, proj4 */
 
 const ROT_WFR = {
-    VERSION: 100006,
+    VERSION: 100007,
     PREFERENCES: 'rot_wfr_prefs',
 
     OPTIONS: {
@@ -803,7 +803,10 @@ function init()
     function initScript()
     {
         addGlobalCss()
-        addDarkModeCss()
+
+        if (preferences.get(ROT_WFR.OPTIONS.DARK_MODE)) {
+            addDarkModeCss()
+        }
 
         addOptionsButton()
 
