@@ -189,7 +189,8 @@ kbd {
     }
 }
 
-.card-area .card-row-container {
+.card-area .card-row-container,
+.card-area .edit-container {
     max-width: unset !important;
 }
 
